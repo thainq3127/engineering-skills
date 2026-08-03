@@ -15,6 +15,10 @@ This command is _informed_ by the project's domain model and built on a shared d
 
 ## Process
 
+### Workstream ownership
+
+The scan and temporary HTML report are read-only against the repository and require no claim. Once the user chooses a candidate and the grilling loop will update `CONTEXT.md`, ADRs, or code, run `/workstream-tracking` with `resolve` and `reconcile`, then inherit or claim activity `planning` before writing. Do not create a Workstream merely to display an architecture report.
+
 ### 1. Explore
 
 **Scope before you scan — YAGNI.** Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed. Decide *where* to look before you look:

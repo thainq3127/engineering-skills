@@ -39,6 +39,12 @@ What makes this variant its own skill is where the answers go. As the grill runs
 - It reaches into the codebase to answer its own questions where it can.
 - ADRs stay rare — you're not asked to rubber-stamp reversible choices.
 
+## Workstream ownership
+
+When the conversation already belongs to a Workstream, `grill-with-docs` resolves and reconciles it, then claims planning before changing `CONTEXT.md` or ADRs. Nested domain modeling inherits that claim. A small exploratory conversation stays untracked and read-only until it becomes a clear durable objective; invoking the skill alone never creates a Workstream.
+
+At a stable boundary it leaves a GitHub handoff to prototype, specification, implementation, or wayfinding, with the decisions, files updated, open questions, and one concrete next action.
+
 ## Where it fits
 
 `grill-with-docs` is the opening step of the main build chain:

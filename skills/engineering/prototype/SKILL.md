@@ -7,6 +7,17 @@ description: Build a throwaway prototype to answer a design question. Use when t
 
 A prototype is **throwaway code that answers a question**. The question decides the shape.
 
+## Workstream envelope
+
+When `docs/agents/workstreams.md` enables Workstreams:
+
+1. run `/workstream-tracking` with `resolve` and `reconcile`;
+2. inherit an existing planning claim, or claim activity `prototype` before writing code;
+3. pin the active decision or source Issue and current `HEAD`;
+4. stop if another operator owns the Workstream without an explicit handoff.
+
+A standalone prototype outside a Workstream may proceed without creating one. Do not manufacture a Workstream for a one-off design question.
+
 ## Pick a branch
 
 Identify which question is being answered — from the user's prompt, the surrounding code, or by asking if the user is around:
@@ -23,4 +34,8 @@ The two branches produce very different artifacts — getting this wrong wastes 
 3. **No persistence by default.** State lives in memory. Persistence is the thing the prototype is _checking_, not something it should depend on. If the question explicitly involves a database, hit a scratch DB or a local file with a clear "PROTOTYPE — wipe me" name.
 4. **Skip the polish.** No tests, no error handling beyond what makes the prototype _runnable_, no abstractions. The point is to learn something fast.
 5. **Surface the state.** After every action (logic) or on every variant switch (UI), print or render the full relevant state so the user can see what changed.
-6. **Capture it when done.** Fold any validated decision into the real code, then capture the prototype itself as a **primary source**: commit it to a throwaway branch, out of main, and leave a context pointer to that branch on the implementation issue. Capture the answer too — the verdict and the question it settled — in the issue or a commit. The main branch keeps only the validated decision.
+6. **Capture it when done.** Fold any validated decision into the real code, then preserve the prototype as a **primary source** without creating a second Workstream branch. Commit the clearly-marked prototype on the persistent Workstream branch, record its commit SHA and verdict on the active decision or source Issue, then delete the throwaway files in a later commit before integration. Git history retains the source; the final tree retains only the validated decision.
+
+## Handoff
+
+Post the question, variants tried, verdict, prototype commit, files removed or retained, and next action on the active Issue. Use `/workstream-tracking` to hand off to `planning`, `specification`, or `implementation`. A prototype answers a question; it does not complete the Workstream.

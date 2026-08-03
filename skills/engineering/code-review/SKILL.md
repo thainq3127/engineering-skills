@@ -1,26 +1,38 @@
 ---
 name: code-review
-description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+description: Review a frozen change range between a fixed point and a pinned reviewed HEAD along two axes — Standards and Spec — then publish findings and hand off the Workstream. Runs both reviews in parallel sub-agents. Use when the user wants to review a branch, PR, or work-in-progress range.
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Two-axis review of the diff between a pinned reviewed `HEAD` and a fixed point:
 
 - **Standards** — does the code conform to this repo's documented coding standards?
 - **Spec** — does the code faithfully implement the originating issue / PRD / spec?
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
+The issue tracker and Workstream protocol should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` or `docs/agents/workstreams.md` is missing.
+
+## Workstream envelope
+
+Before reviewing, run `/workstream-tracking` with operation `resolve`, then `reconcile`.
+
+Choose the durable review surface before doing the review:
+
+- **Pull Request review** — publish the review on the Pull Request.
+- **Branch or specification review without a Pull Request** — search for an existing review Issue, otherwise create one with `kind:review` and the current `ws:<slug>` label.
+- **Small verification of one source Issue** — use a comment on that Issue when a separate review artifact would add no value.
+
+Claim activity `review`. A review claim is read-only by default and must pin both the fixed point and reviewed `HEAD`. Record `reviewed-head=$(git rev-parse HEAD)` at claim time. Do not review while another operator is still writing or while `HEAD` is moving.
 
 ## Process
 
 ### 1. Pin the fixed point
 
-Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.
+Use the fixed point the user supplied or the implementation handoff pinned. If neither exists, ask for one. Never guess a review range from a branch name alone.
 
-Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
+Capture the diff command once: `git diff <fixed-point>...<reviewed-head>` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..<reviewed-head> --oneline`.
 
-Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
+Before going further, confirm both refs resolve and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
 
 ### 2. Identify the spec source
 
@@ -78,6 +90,27 @@ If the spec is missing, skip the Spec sub-agent and note this in the final repor
 Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+
+### 6. Publish and hand off
+
+Before publishing, confirm `git rev-parse HEAD` still equals `<reviewed-head>`. If it changed, stop and restart against a newly handed-off range; do not publish a review of a moving target.
+
+Publish the two-axis report to the durable review surface selected above.
+
+Route findings deliberately:
+
+- a small finding within the current Issue's scope stays on the review artifact;
+- independent corrective work gets its own Issue only when it has a distinct outcome and acceptance conditions;
+- every corrective Issue receives `kind:corrective`, the Workstream label and marker, links to the review and source implementation artifact, and Project registration only when active or on the immediate frontier;
+- do not create one corrective Issue per comment when several findings share one coherent fix.
+
+Then run `/workstream-tracking` with operation `handoff`:
+
+- no blocking findings → transition to `integration` or complete the source artifact as appropriate;
+- blocking findings → transition to `correction`, naming the first corrective artifact and next operator;
+- no specification available → preserve that limitation in the handoff rather than silently treating the Spec axis as passed.
+
+Keep the Workstream root open while further implementation, correction, review, or integration remains.
 
 ## Why two axes
 

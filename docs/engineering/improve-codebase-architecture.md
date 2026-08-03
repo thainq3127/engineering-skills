@@ -36,6 +36,10 @@ The output is a browser-ready HTML file written to your OS temp directory — no
 
 Then it stops and asks which one you want to explore. Pick one and it runs the [grilling](https://aihero.dev/skills-grilling) loop over that design — constraints, what sits behind the seam, which tests survive — updating the domain model inline as decisions crystallise.
 
+## Workstream ownership
+
+The scan and temporary HTML report are read-only and need no claim. Once a candidate is chosen and the conversation will update `CONTEXT.md`, ADRs, or code, the skill resolves the current Workstream and inherits or claims planning before writing. Merely displaying an architecture report never creates a Workstream.
+
 ## Where it fits
 
 `improve-codebase-architecture` is **periodic maintenance** — run it every few days, not as a step in a chain. Its neighbours are [codebase-design](https://aihero.dev/skills-codebase-design), which owns the depth-and-seam vocabulary every candidate is written in, [grilling](https://aihero.dev/skills-grilling), which walks the decision tree once you've chosen a candidate, and [domain-modeling](https://aihero.dev/skills-domain-modeling), which keeps `CONTEXT.md` and the ADRs current as the redesign settles. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

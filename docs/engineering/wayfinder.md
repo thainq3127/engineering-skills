@@ -39,6 +39,10 @@ Every ticket is **HITL** (human in the loop — grilling, prototype) or **AFK** 
 - A session resolves **at most one ticket** (research tickets excepted), records the answer as a resolution comment, closes the ticket, and appends a one-line pointer to *Decisions so far*.
 - If the opening grill surfaces **no fog**, it stops and tells you the journey is small enough to skip the map.
 
+## Workstream root
+
+When Workstreams are enabled, the wayfinder map is also the canonical Workstream root. It receives the root marker, Workstream labels, one persistent local worktree and branch, and the cooperative planning claim. Decision tickets carry `kind:decision` and the same Workstream identity. No duplicate `[Workstream]` Issue is created beside the map.
+
 ## Where it fits
 
 `wayfinder` is a big-idea **on-ramp**: an effort too large and foggy to spec in one sitting generates a cleared map of decisions, which then merges onto the main build flow. When the fog is pushed back and the way is clear, hand off to [to-spec](https://aihero.dev/skills-to-spec) to schedule the multi-session build (or, if the effort turned out small, implement directly). It leans on [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) to resolve individual tickets, and on [prototype](https://aihero.dev/skills-prototype) and [research](https://aihero.dev/skills-research) for the ticket types that need them. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

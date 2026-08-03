@@ -48,6 +48,10 @@ That matters for agentic development: a good interface gives tests something dur
 - It checks the seams with you before writing, and proposes as few as possible.
 - The spec comes back in your project's domain vocabulary, not generic boilerplate.
 
+## Workstream protocol
+
+When Workstreams are enabled, `to-spec` resolves or creates the durable Workstream before publishing. The Workstream root remains a low-resolution index; the specification is a separate child Issue labelled `kind:spec` and `ws:<slug>`, registered in the Project while active. Publishing ends with a durable handoff to ticketing rather than a chat-local TODO.
+
 ## Where it fits
 
 `to-spec` is a step in the main build chain:

@@ -35,7 +35,11 @@ Picking the wrong branch wastes the whole prototype, so the question comes first
 
 A finished prototype leaves two things. The **answer** — the verdict plus the question it settled — is what you capture durably (a commit message, an ADR, an issue). The **prototype itself is a primary source** — the runnable evidence the answer came from.
 
-The prototype doesn't belong in the main branch: no tests, no error handling, nothing to maintain. But that's not a reason to destroy it. Once the answer is captured, fold any validated decision into the real code, then capture the prototype on a throwaway branch — out of main, never merged — and leave a context pointer to it on the implementation issue. The main branch stays clean; the raw exploration stays one click away for anyone who wants to re-run it. A prototype left rotting in the main branch has outlived its purpose — a prototype captured as a primary source on a side branch hasn't.
+Inside a Workstream, the prototype does not create a second branch. It is committed as clearly marked throwaway code on the persistent Workstream branch, linked from the active Issue, then removed in a later commit before integration. Git history keeps the runnable primary source while the final tree keeps only the validated decision.
+
+## Workstream ownership
+
+Prototype work inherits a planning claim or claims the Workstream's `prototype` activity before writing. Another operator's live claim is a stop condition. When the question is answered, the skill records the verdict and prototype commit on the active Issue and hands off to planning, specification, or implementation. A standalone one-off prototype does not need a new Workstream.
 
 ## Where it fits
 

@@ -45,6 +45,10 @@ Before slicing, `to-tickets` looks for prefactoring — "make the change easy, t
 
 One shape breaks the tracer-bullet rule: a **wide refactor** — a single mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so one edit breaks thousands of call sites at once and no vertical slice can land green. `to-tickets` slices it as **expand–contract** instead: expand (add the new form beside the old so nothing breaks), migrate (move call sites over in batches sized by blast radius, one ticket per batch, CI green throughout because the old form still exists), then contract (delete the old form once no caller remains). When even the batches can't stay green alone, they share an integration branch that all block a final integrate-and-verify ticket, and green is promised only there.
 
+## Workstream protocol
+
+All implementation Issues stay attached to the source Workstream. They sit directly under the Workstream root, link the source specification, receive `kind:implementation` and `ws:<slug>`, and are created idempotently. Only the dependency frontier enters the Project; later blocked Issues remain in the hierarchy until they become actionable.
+
 ## Where it fits
 
 `to-tickets` is a step in the main build chain:

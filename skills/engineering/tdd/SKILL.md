@@ -9,6 +9,12 @@ TDD is the red → green loop. This skill is the reference that makes that loop 
 
 When exploring the codebase, read `CONTEXT.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
 
+## Workstream ownership
+
+When invoked from `/implement`, `/diagnosing-bugs`, or another claimed flow, inherit that Workstream claim. Do not replace the operator, activity, active Issue, or fixed point.
+
+When invoked standalone and it will modify repository files, read `docs/agents/workstreams.md`, run `/workstream-tracking` with `resolve` and `reconcile`, then claim `implementation` before the first test is written. A small standalone change does not need a new Workstream, but it still must not write into a worktree currently claimed by another operator.
+
 ## What a good test is
 
 Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification — "user can checkout with valid cart" tells you exactly what capability exists — and survives refactors because it doesn't care about internal structure.

@@ -9,6 +9,20 @@ A discipline for hard bugs. Skip phases only when explicitly justified.
 
 When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 
+## Tracker and Workstream envelope
+
+Diagnosis belongs on a bug Issue, not in a separate "diagnosis session" Issue.
+
+Before Phase 1:
+
+1. Read `docs/agents/issue-tracker.md` and `docs/agents/workstreams.md` when present.
+2. Search for an existing Issue that describes the same symptom, including recently closed matches.
+3. If none exists, create one durable bug Issue before diagnosing. Apply the configured bug/category labels and `kind:bug`.
+4. Run `/workstream-tracking` with operation `resolve`. Attach the bug to an existing Workstream when the symptom belongs to that objective. Create a new Workstream only when the bug is itself a durable multi-session objective and the user-invoked flow has established that need.
+5. When a Workstream exists, register the bug, reconcile state, and claim activity `diagnosis` before modifying code or instrumentation.
+
+Keep confirmed facts, ruled-out hypotheses, remaining hypotheses, the reproduction command, and the next experiment on the same bug Issue throughout diagnosis. Update incrementally even before the root cause is known.
+
 ## Phase 1 — Build a feedback loop
 
 **This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug — one that goes red on _this_ bug — you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
@@ -132,3 +146,19 @@ Required before declaring done:
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
 
 **Then ask: what would have prevented this bug?** If the answer involves architectural change (no good test seam, tangled callers, hidden coupling) hand off to the `/improve-codebase-architecture` skill with the specifics. Make the recommendation **after** the fix is in, not before — you have more information now than when you started.
+
+### Durable outcome and handoff
+
+Post the diagnosis outcome on the bug Issue:
+
+- exact symptom and reproduction command;
+- root cause and evidence;
+- hypotheses ruled out;
+- fix and regression seam, or why no correct seam exists;
+- verification commands and results;
+- fixed point and current `HEAD` when code changed;
+- remaining work and next action.
+
+Create a separate corrective Issue only when the follow-up is independently actionable or outside the bug Issue's agreed scope. Link it to the bug and current Workstream and register it only when active or frontier.
+
+Use `/workstream-tracking` to hand off to `correction`, `review`, or `integration` as appropriate. Complete the bug Issue only after its exact symptom no longer reproduces and required verification is recorded. Do not close the Workstream root merely because this bug is fixed.

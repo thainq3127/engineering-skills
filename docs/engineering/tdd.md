@@ -36,6 +36,10 @@ Refactoring only happens once the suite is green; never while red.
 - The tests name behaviours, not internals, and would survive an internal rename.
 - Expected values are literals from the spec, not figures derived the same way the code derives them.
 
+## Workstream ownership
+
+Inside `implement` or diagnosis, `tdd` inherits the caller's claim and fixed point. It never replaces the operator or active Issue. When invoked standalone and it will write files, it resolves the current Workstream and claims implementation first; a small standalone change need not create a Workstream, but it may not write into one owned by another operator.
+
 ## Where it fits
 
 `tdd` is the red-green loop the main build chain runs to write code:

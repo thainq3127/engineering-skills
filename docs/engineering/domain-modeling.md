@@ -41,6 +41,10 @@ The move that makes it click: when you state how something works, the skill cros
 
 Keeping it standalone means you can also reach for it directly — as a **reference** for how to sharpen a model — without committing to the steps any of those skills mandate. The language lives in one place, and everything that needs it points there.
 
+## Workstream ownership
+
+When another skill invokes domain modeling, it inherits that skill's claim and only updates the glossary or ADRs within the active scope. A standalone invocation that writes files resolves and claims planning first. Pure standalone terminology work does not automatically create a Workstream, but it still verifies that another operator does not own the current worktree.
+
 ## Where it fits
 
 `domain-modeling` is a **reach-for-it-anytime standalone** that runs *underneath* other skills as often as at a fixed step. Its closest neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), because a shared language is what lets you name a deep module and its seam precisely; downstream, a settled glossary is exactly what [to-spec](https://aihero.dev/skills-to-spec) synthesises into a spec written in the project's own words. When you're unsure which skill or flow fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

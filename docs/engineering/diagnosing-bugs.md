@@ -35,6 +35,10 @@ It gives you a ladder of ways to build that loop — failing test, curl script, 
 - Hypotheses arrive as a ranked, falsifiable list shown to you before any are tested.
 - Debug instrumentation is tagged (`[DEBUG-...]`) and grepped away before it declares done.
 
+## Workstream protocol
+
+Diagnosis always belongs on a real bug Issue. It reuses an existing Issue when one matches, creates one only when none exists, and never creates a separate Issue merely because an agent session began. Confirmed facts, ruled-out hypotheses, reproduction commands, root cause, verification, and the final handoff remain on that bug artifact and its Workstream.
+
 ## Where it fits
 
 `diagnosing-bugs` is a reach-for-it-anytime standalone — you drop into it the moment something is broken, and drop out once the fix and its regression test are in. Its post-mortem hands off to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) when the real finding is that there's no good seam to lock the bug down — the code, not the bug, is the problem. When you're unsure which skill fits, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

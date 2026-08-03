@@ -22,8 +22,12 @@ Reach for it when the next step is *finding something out* — how an API behave
 
 ## Delegated legwork
 
-The defining move is that the reading runs as a **background agent**. You keep working; it goes off, follows each claim back to its primary source, and drops a single cited Markdown file into wherever the repo keeps such notes. Research is legwork you delegate, not thinking you outsource — you get back a document to react to, with its sources attached.
+The defining move is that the reading runs as a **background agent**. You keep working; it follows each claim back to its primary source and returns one cited Markdown report to the controlling operator. Research is legwork you delegate, not thinking you outsource.
+
+## Workstream ownership
+
+Within a Workstream, the background researcher is read-only against the shared local worktree. It does not create another worktree, switch branches, commit, or write concurrently. The operator holding the claim saves the report, links it from the active Issue, and hands off the decision it unblocked. Standalone research that never writes into the repository needs no Workstream.
 
 ## Where it fits
 
-A reach-for-it-anytime standalone that feeds the thinking skills: the file it produces is something to grill, plan, or design against, so it sits upstream of work like [grilling](https://aihero.dev/skills-grilling) and [to-prd](https://aihero.dev/skills-to-prd) rather than in the build chain. For the whole map, see [ask-matt](https://aihero.dev/skills-ask-matt).
+A reach-for-it-anytime standalone that feeds the thinking skills: the report it produces is something to grill, plan, or design against, so it sits upstream of work like [grilling](https://aihero.dev/skills-grilling) and [to-spec](https://aihero.dev/skills-to-spec) rather than in the build chain. For the whole map, see [ask-matt](https://aihero.dev/skills-ask-matt).

@@ -20,16 +20,28 @@ The route most work travels. You have an idea and want it built.
    - **`/prototype`** to answer the question with throwaway code,
    - **`/handoff`** back what you learned, and reference it from the original idea thread.
 3. **Branch — is this a multi-session build?**
-   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed — kick off **`/implement`** per ticket, **clearing context between each one**.
+   - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed — kick off **`/implement`** per ticket, **clearing context between each one**. When Workstreams are enabled, the whole chain stays attached to one root issue, one persistent local worktree, and one branch.
    - **No** → **`/implement`** right here, in the same context window.
 
-   Either way, **`/implement`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — then closes out by running **`/code-review`**, a two-axis review (Standards + Spec) of the diff, before committing. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.
+   Either way, **`/implement`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — verifies and commits the bounded change, then hands a frozen range to **`/code-review`**, a two-axis review (Standards + Spec). The same operator may continue into review only after the handoff; otherwise another operator claims it. `/workstream-tracking` runs underneath both: it claims the shared worktree, pins the fixed point, registers the active issue, and writes the GitHub handoff between operators. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.
 
 ### Context hygiene
 
 Keep steps 1–3 in **one unbroken context window** — don't compact or clear until after `/to-tickets` — so the grilling, spec, and tickets all build on the same thinking. Each `/implement` then starts fresh, working from the ticket.
 
 The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the window (~120k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before `/to-tickets`, don't push on degraded — `/handoff` and continue in a fresh thread.
+
+## Control plane underneath
+
+**`/workstream-tracking`** is the model-invoked protocol beneath the engineering flows. It is not another destination in the router. It keeps one durable Workstream aligned across:
+
+- one canonical GitHub root issue;
+- one persistent local worktree and branch;
+- the currently active Issue or Pull Request;
+- GitHub Projects v2 operational state;
+- cooperative claims and durable handoffs between ChatGPT Web, Codex, and humans.
+
+`grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `code-review`, `diagnosing-bugs`, `triage`, and `wayfinder` invoke it at their own lifecycle boundaries. Model-invoked writer disciplines such as `prototype`, `tdd`, `domain-modeling`, `research`, and `resolving-merge-conflicts` inherit the caller's claim or claim before standalone writes. Worktrees, branches, commits, and chat sessions never become tracking Issues.
 
 ## On-ramps
 
@@ -75,4 +87,4 @@ Off the main flow entirely.
 
 ## Precondition
 
-**`/setup-matt-pocock-skills`** — run before your first engineering flow to configure the issue tracker, triage labels, and doc layout the other skills assume. Custom issue trackers also work.
+**`/setup-matt-pocock-skills`** — run before your first engineering flow to configure tracker access, the Workstream Project and worktree layout, triage labels, and domain docs. Custom issue trackers also work.

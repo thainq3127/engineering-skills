@@ -71,11 +71,23 @@ It writes the skills into your repo as ordinary files you own and can edit. Noth
 
 </details>
 
+### Use one physical skill set on Windows
+
+This fork includes a safe PowerShell linker so Codex and other Agent Skills-compatible harnesses read directly from this clone instead of stale copied directories:
+
+```powershell
+pwsh -File .\scripts\link-skills.ps1 -Force -WhatIf
+pwsh -File .\scripts\link-skills.ps1 -Force
+```
+
+The first command previews changes. The second moves existing promoted-skill directories into a timestamped `~/.agents/skill-backups/` folder, then creates directory junctions from `~/.agents/skills` into this clone. Add `-IncludeClaude` to link `~/.claude/skills` as well. Skills outside the promoted `engineering` and `productivity` buckets are left untouched.
+
 ### 2. Run `/setup-matt-pocock-skills`
 
 In your agent, run it once per repo. It will:
 
-- Ask you which issue tracker you want to use (GitHub, Linear, or local files)
+- Ask you which issue tracker and access path you want to use
+- Configure shared Workstreams, one-worktree ownership, and a GitHub Projects v2 control plane when enabled
 - Ask you what labels you apply to tickets when you triage them (`/triage` uses labels)
 - Ask you where you want to save any docs we create
 
@@ -195,15 +207,16 @@ Skills I use daily for code work.
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Grilling session that also builds your project's domain model, sharpening terminology and updating `CONTEXT.md` and ADRs inline.
 - **[triage](./skills/engineering/triage/SKILL.md)** — Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./skills/engineering/improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
-- **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)** — Configure this repo for the engineering skills (issue tracker, triage labels, domain doc layout). Run once per repo before using the other engineering skills.
+- **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)** — Configure tracker access, shared Workstreams and worktrees, Projects v2, triage labels, and domain docs. Run once per repo before using the other engineering skills.
 - **[to-spec](./skills/engineering/to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker. No interview — just synthesizes what you've already discussed.
 - **[to-tickets](./skills/engineering/to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — written as text in a local file, or as native blocking links on a real tracker.
-- **[implement](./skills/engineering/implement/SKILL.md)** — Build the work described by a spec or set of tickets, driving `/tdd` at pre-agreed seams and closing out with `/code-review` before committing.
+- **[implement](./skills/engineering/implement/SKILL.md)** — Build one tracked Issue at pre-agreed seams, verify and commit it, then leave a frozen GitHub handoff for `/code-review`.
 - **[wayfinder](./skills/engineering/wayfinder/SKILL.md)** — Plan a huge chunk of work, more than one agent session can hold, as a shared map of investigation tickets on the issue tracker — resolve them one at a time until the way to the destination is clear.
 
 **Model-invoked**
 
 - **[prototype](./skills/engineering/prototype/SKILL.md)** — Build a throwaway prototype to answer a design question — a runnable terminal app for state/logic questions, or several radically different UI variations toggleable from one route.
+- **[workstream-tracking](./skills/engineering/workstream-tracking/SKILL.md)** — Coordinate one durable objective across a canonical GitHub root issue, one persistent local worktree and branch, Project state, cooperative claims, and durable handoffs between operators.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)** — Disciplined diagnosis loop for hard bugs and performance regressions: reproduce → minimise → hypothesise → instrument → fix → regression-test.
 - **[research](./skills/engineering/research/SKILL.md)** — Investigate a question against high-trust primary sources and capture the findings as a cited Markdown file in the repo, run as a background agent.
 - **[tdd](./skills/engineering/tdd/SKILL.md)** — Test-driven development with a red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.

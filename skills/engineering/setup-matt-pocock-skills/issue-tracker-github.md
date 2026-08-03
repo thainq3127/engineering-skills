@@ -1,45 +1,63 @@
 # Issue tracker: GitHub
 
-Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues, Pull Requests, and Projects v2 for this repository live on GitHub.
 
-## Conventions
+Use the connected `@github` MCP as the primary and default interface for every GitHub read and write. Use local `git` only for branches, worktrees, commits, refs, diffs, and repository state.
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
-- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
-- **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
-- **Comment on an issue**: `gh issue comment <number> --body "..."`
-- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
-- **Close**: `gh issue close <number> --comment "..."`
+## Tool policy
 
-Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
+- Use `@github` MCP for Issues, Pull Requests, labels, comments, reviews, issue relationships, Projects v2, Project items, and GitHub metadata.
+- Do not use `gh`, direct REST or GraphQL calls, the ChatGPT GitHub App, or browser UI as an automatic fallback.
+- If MCP does not expose a required operation, report the exact capability gap and leave that operation pending.
+- A fallback is allowed only when this file is deliberately edited to name the allowed tool and operation.
+- Before every write, read the current remote state so retries are idempotent.
 
-## Pull requests as a triage surface
+Infer the repository from the local remote, then verify it against the connected GitHub result before mutating anything.
 
-**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
+## Core operations
 
-When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
+- **Create an issue**: search open and recently closed issues for duplicates, then use the MCP issue-create operation.
+- **Read an issue**: fetch the full body, labels, relationships, and comments.
+- **List or search issues**: use repository-scoped issue search and request only the fields needed.
+- **Comment**: post on the existing Issue or Pull Request.
+- **Apply or remove labels**: list labels first, create only registry labels that are genuinely missing, then update the Issue or Pull Request.
+- **Close**: write the durable outcome first, then close with the appropriate reason.
+- **Create or update a Pull Request review**: use the Pull Request review surface rather than a generic issue comment when the finding is a PR review.
 
-- **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for the diff.
-- **List external PRs for triage**: `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop `OWNER`/`MEMBER`/`COLLABORATOR`).
-- **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`, `gh pr close`.
+## Pull Requests as a triage surface
 
-GitHub shares one number space across issues and PRs, so a bare `#42` may be either — resolve with `gh pr view 42` and fall back to `gh issue view 42`.
+**PRs as a request surface: no.** _(Set to `yes` if this repository treats external Pull Requests as feature requests; `/triage` reads this flag.)_
+
+When set to `yes`, external Pull Requests move through the same triage roles as Issues. Discovery includes only external authors; an explicitly named Pull Request is always in scope.
+
+GitHub shares one number space across Issues and Pull Requests. Resolve a bare `#42` by reading the object type through MCP before acting.
 
 ## When a skill says "publish to the issue tracker"
 
-Create a GitHub issue.
+Create or update a GitHub Issue through `@github` MCP. Search first and preserve any Workstream relationship described by `docs/agents/workstreams.md`.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Read the full Issue or Pull Request body, labels, comments, parent or child relationships, and linked Pull Requests through MCP.
+
+## Workstream operations
+
+Used by `/workstream-tracking` and every flow that invokes it.
+
+- **Root**: one canonical Issue carrying the configured `workstream` and `ws:<slug>` labels plus the `workstream-root:v1` marker.
+- **Artifact link**: prefer a native sub-issue relationship when supported and semantically correct; also retain the Workstream marker in the body for cross-repository readability.
+- **Project registration**: add the root and only active, blocked, reviewing, integrating, or immediate-frontier artifacts to the configured Projects v2 Project.
+- **Status**: map queued, active, and done through `docs/agents/workstreams.md`.
+- **Claim and handoff**: update only the root's managed state block and post the durable handoff on the active Issue or Pull Request.
+- **Capability gaps**: if MCP cannot create a custom Project field, saved view, dependency edge, or delete a Project, report that limitation. Do not reach for `gh`.
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
+Used by `/wayfinder`. When Workstreams are enabled, the wayfinder map is also the Workstream root.
 
-- **Map**: a single issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body. `gh issue create --label wayfinder:map`.
-- **Child ticket**: an issue linked to the map as a GitHub sub-issue (`gh api` on the sub-issues endpoint). Where sub-issues aren't enabled, add the child to a task list in the map body and put `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.
-- **Blocking**: GitHub's **native issue dependencies** — the canonical, UI-visible representation. Add an edge with `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). GitHub reports `issue_dependencies_summary.blocked_by` (open blockers only — the live gate). Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body. A ticket is unblocked when every blocker is closed.
-- **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
-- **Claim**: `gh issue edit <n> --add-assignee @me` — the session's first write.
-- **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.
+- **Map**: one Issue labelled `wayfinder:map`, `workstream`, and `ws:<slug>`, holding Destination, Notes, Decisions-so-far, and Fog.
+- **Child decision**: an Issue linked to the map as a native sub-issue when available. Apply `wayfinder:<type>`, `kind:decision`, and `ws:<slug>`.
+- **Blocking**: use GitHub's native issue dependency relationship when the MCP exposes it. Otherwise use the configured `Blocked by` body convention and explicitly note that native dependency mutation is unavailable.
+- **Frontier query**: list open child decisions, remove any with open blockers or another assignee, then take the first in map order.
+- **Claim**: assign the decision to the configured human account where appropriate and claim the Workstream through `/workstream-tracking` before work begins.
+- **Resolve**: post the answer, close the decision, append one linked gist to Decisions-so-far, then reconcile the Workstream and Project.
