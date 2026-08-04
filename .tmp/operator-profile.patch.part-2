@@ -1,0 +1,130 @@
++Nested model-invoked skills inherit the caller's claim **and execution profile**. `/tdd`, `/domain-modeling`, `/research`, and other reusable disciplines must not replace an active claim or switch transports merely because they were invoked inside a claimed flow. A standalone invocation that needs to write must resolve an operator profile and claim an appropriate activity first.
+ 
+ ## Register an artifact
+ 
+--- a/skills/engineering/setup-matt-pocock-skills/workstreams.md
++++ b/skills/engineering/setup-matt-pocock-skills/workstreams.md
+@@ -6,8 +6,6 @@
+ 
+ ## Control plane
+ 
+-- GitHub access: connected `@github` MCP
+-- Fallback tools: none unless explicitly added to this file
+ - Project owner: `<owner>`
+ - Project number: `<number>`
+ - Project title: `<title>`
+@@ -46,6 +44,46 @@
+ 
+ Only one operator may control a Workstream at a time. Claims are cooperative; an agent must not steal another operator's claim without an explicit handoff or human direction.
+ 
++## Operator execution profiles
++
++### ChatGPT Web
++
++- Default activities: planning, specification, ticketing, review
++- Local workspace transport: `@devspace`
++- GitHub transport: connected `@github` MCP
++- Default owner of `/implement`: no
++- Default owner of `/code-review`: yes
++- Forbidden transports:
++  - native Codex filesystem or shell as a substitute
++  - `gh`
++  - ChatGPT GitHub App
++  - direct REST or GraphQL fallback
++
++### Codex
++
++- Default activities: implementation, diagnosis, correction, integration
++- Local workspace transport: native filesystem, process execution, shell, and local Git
++- GitHub transport: authenticated `gh` CLI
++- Default owner of `/implement`: yes
++- Default owner of `/code-review`: no
++- Forbidden transports:
++  - `@devspace`
++  - `@github` MCP
++  - ChatGPT GitHub App
++  - direct REST or GraphQL fallback
++
++### Human
++
++- Local workspace transport: `<configured human workflow>`
++- GitHub transport: `<configured human workflow>`
++- Default owner of `/implement`: no
++- Default owner of `/code-review`: no
++- Forbidden transports: `<none or explicit list>`
++
++### Missing transport behavior
++
++Stop and report the unavailable or unauthenticated required transport. Never fall back to another operator's transport. An explicit operator override changes the operator for one run, not the profile's allowed tools.
++
+ ## Artifact labels
+ 
+ The root has `workstream` plus `ws:<slug>`. Every non-root Workstream artifact has exactly one `kind:*` label plus `ws:<slug>`:
+--- a/skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md
++++ b/skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md
+@@ -2,21 +2,22 @@
+ 
+ Issues, Pull Requests, and Projects v2 for this repository live on GitHub.
+ 
+-Use the connected `@github` MCP as the primary and default interface for every GitHub read and write. Use local `git` only for branches, worktrees, commits, refs, diffs, and repository state.
++GitHub transport is selected by the current operator execution profile in `docs/agents/workstreams.md`. There is no repository-wide default transport.
+ 
+ ## Tool policy
+ 
+-- Use `@github` MCP for Issues, Pull Requests, labels, comments, reviews, issue relationships, Projects v2, Project items, and GitHub metadata.
+-- Do not use `gh`, direct REST or GraphQL calls, the ChatGPT GitHub App, or browser UI as an automatic fallback.
+-- If MCP does not expose a required operation, report the exact capability gap and leave that operation pending.
+-- A fallback is allowed only when this file is deliberately edited to name the allowed tool and operation.
+-- Before every write, read the current remote state so retries are idempotent.
++- `ChatGPT Web` uses connected `@github` MCP for Issues, Pull Requests, labels, comments, reviews, issue relationships, Projects v2, Project items, and GitHub metadata.
++- `Codex` uses authenticated `gh` CLI for the same GitHub operations.
++- Each operator must use its configured transport and must not substitute another operator's transport.
++- Do not use the ChatGPT GitHub App, browser UI, direct REST, or direct GraphQL as an automatic fallback.
++- If the configured transport does not expose a required operation or is unavailable, report the exact capability gap and leave that operation pending.
++- Before every write, read the current remote state through the same configured transport so retries are idempotent.
+ 
+ Infer the repository from the local remote, then verify it against the connected GitHub result before mutating anything.
+ 
+ ## Core operations
+ 
+-- **Create an issue**: search open and recently closed issues for duplicates, then use the MCP issue-create operation.
++- **Create an issue**: search open and recently closed issues for duplicates, then create it through the current operator's configured GitHub transport.
+ - **Read an issue**: fetch the full body, labels, relationships, and comments.
+ - **List or search issues**: use repository-scoped issue search and request only the fields needed.
+ - **Comment**: post on the existing Issue or Pull Request.
+@@ -34,11 +35,11 @@
+ 
+ ## When a skill says "publish to the issue tracker"
+ 
+-Create or update a GitHub Issue through `@github` MCP. Search first and preserve any Workstream relationship described by `docs/agents/workstreams.md`.
++Create or update a GitHub Issue through the current operator's configured GitHub transport. Search first and preserve any Workstream relationship described by `docs/agents/workstreams.md`.
+ 
+ ## When a skill says "fetch the relevant ticket"
+ 
+-Read the full Issue or Pull Request body, labels, comments, parent or child relationships, and linked Pull Requests through MCP.
++Read the full Issue or Pull Request body, labels, comments, parent or child relationships, and linked Pull Requests through the current operator's configured GitHub transport.
+ 
+ ## Workstream operations
+ 
+@@ -49,7 +50,7 @@
+ - **Project registration**: add the root and only active, blocked, reviewing, integrating, or immediate-frontier artifacts to the configured Projects v2 Project.
+ - **Status**: map queued, active, and done through `docs/agents/workstreams.md`.
+ - **Claim and handoff**: update only the root's managed state block and post the durable handoff on the active Issue or Pull Request.
+-- **Capability gaps**: if MCP cannot create a custom Project field, saved view, dependency edge, or delete a Project, report that limitation. Do not reach for `gh`.
++- **Capability gaps**: if the current operator's configured GitHub transport cannot create a custom Project field, saved view, dependency edge, or delete a Project, report that limitation. Do not switch transports.
+ 
+ ## Wayfinding operations
+ 
+@@ -57,7 +58,7 @@
+ 
+ - **Map**: one Issue labelled `wayfinder:map`, `workstream`, and `ws:<slug>`, holding Destination, Notes, Decisions-so-far, and Fog.
+ - **Child decision**: an Issue linked to the map as a native sub-issue when available. Apply `wayfinder:<type>`, `kind:decision`, and `ws:<slug>`.
+-- **Blocking**: use GitHub's native issue dependency relationship when the MCP exposes it. Otherwise use the configured `Blocked by` body convention and explicitly note that native dependency mutation is unavailable.
++- **Blocking**: use GitHub's native issue dependency relationship when the current operator's configured transport exposes it. Otherwise use the configured `Blocked by` body convention and explicitly note that native dependency mutation is unavailable.
+ - **Frontier query**: list open child decisions, remove any with open blockers or another assignee, then take the first in map order.
+ - **Claim**: assign the decision to the configured human account where appropriate and claim the Workstream through `/workstream-tracking` before work begins.
+ - **Resolve**: post the answer, close the decision, append one linked gist to Decisions-so-far, then reconcile the Workstream and Project.
+--- a/skills/engineering/code-review/SKILL.md
++++ b/skills/engineering/code-review/SKILL.md
+@@ -12,6 +12,21 @@
+ 
