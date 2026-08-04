@@ -20,8 +20,8 @@ jobs:
         run: |
           set -euo pipefail
           cat .tmp/operator-profile.patch.part-* > /tmp/operator-profile.patch
-          git apply --check /tmp/operator-profile.patch
-          git apply /tmp/operator-profile.patch
+          git apply --ignore-space-change --ignore-whitespace --check /tmp/operator-profile.patch
+          git apply --ignore-space-change --ignore-whitespace /tmp/operator-profile.patch
           node scripts/validate-skills.mjs
           git diff --check
 
