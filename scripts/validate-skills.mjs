@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { checkGeneratedInstructions } from "./generate-gpt-instructions.mjs";
 
 const root = process.cwd();
 const errors = [];
@@ -26,7 +27,8 @@ const parseJson = (relativePath) => {
 
 const plugin = parseJson(".claude-plugin/plugin.json");
 parseJson(".claude-plugin/marketplace.json");
-parseJson("package.json");
+const packageJson = parseJson("package.json");
+const gptManifest = parseJson("gpts/manifest.json");
 
 const promotedBuckets = ["engineering", "productivity"];
 const skills = [];
@@ -39,6 +41,7 @@ const textRoots = [
   "docs/productivity",
   ".agents",
   ".claude-plugin",
+  "gpts",
   "scripts",
 ];
 
@@ -285,11 +288,141 @@ if (!exists("docs/engineering/review-composer.md")) {
   errors.push("review-composer: missing docs/engineering/review-composer.md");
 }
 
+for (const error of checkGeneratedInstructions()) {
+  errors.push(`GPT packaging: ${error}`);
+}
+
+const expectedGptIds = [
+  "matt",
+  "engineering-planner",
+  "wayfinder",
+  "code-reviewer",
+  "review-composer",
+  "triage-operator",
+];
+
+if (packageJson) {
+  for (const [scriptName, expectedCommand] of [
+    ["generate:gpts", "node scripts/generate-gpt-instructions.mjs"],
+    ["check:gpts", "node scripts/generate-gpt-instructions.mjs --check"],
+  ]) {
+    if (packageJson.scripts?.[scriptName] !== expectedCommand) {
+      errors.push(`package.json: ${scriptName} must be ${expectedCommand}`);
+    }
+  }
+}
+
+if (gptManifest) {
+  const agents = Array.isArray(gptManifest.agents) ? gptManifest.agents : [];
+  const ids = agents.map((agent) => agent.id);
+  for (const id of expectedGptIds) {
+    if (!ids.includes(id)) errors.push(`gpts/manifest.json: missing Phase 1 GPT ${id}`);
+  }
+  for (const id of ids) {
+    if (!expectedGptIds.includes(id)) errors.push(`gpts/manifest.json: unexpected Phase 1 GPT ${id}`);
+  }
+  if (new Set(ids).size !== ids.length) {
+    errors.push("gpts/manifest.json: duplicate GPT ids");
+  }
+
+  for (const agent of agents) {
+    const outputPath = path.join("gpts", agent.output ?? "");
+    if (!exists(outputPath)) continue;
+    const generated = read(outputPath);
+    if (Buffer.byteLength(generated, "utf8") > 8000) {
+      errors.push(`GPT ${agent.id}: generated instructions exceed the 8000-byte portability budget`);
+    }
+    requirePatterns(`GPT ${agent.id}`, generated, [
+      ["explicit @devspace transport", /Use `@devspace` for all local workspace operations/i],
+      ["explicit @github transport", /Use connected `@github` for all GitHub reads and mutations/i],
+      ["forbidden ChatGPT GitHub App fallback", /ChatGPT GitHub App/i],
+      ["no transport fallback", /Do not fall back/i],
+      ["runtime skill loading independence", /Do not depend on automatic runtime skill loading/i],
+      ["dynamic state resolution", /Project instructions are routing metadata, not execution truth/i],
+      ["routing envelope", /Routing and handoff contract/i],
+    ]);
+
+    for (const skillPath of agent.canonicalSkills ?? []) {
+      if (!exists(skillPath)) {
+        errors.push(`GPT ${agent.id}: canonical skill does not exist: ${skillPath}`);
+      }
+    }
+  }
+}
+
+const generatedGpt = (id) => {
+  const entry = gptManifest?.agents?.find((agent) => agent.id === id);
+  return entry && exists(path.join("gpts", entry.output))
+    ? read(path.join("gpts", entry.output))
+    : "";
+};
+
+requirePatterns("GPT matt", generatedGpt("matt"), [
+  ["routing-only boundary", /front door.*produce a routing envelope, and stop/is],
+  ["read-only boundary", /Matt is read-only/i],
+  ["Codex execution ownership", /Implementation, diagnosis, correction, and integration remain Codex-owned/i],
+]);
+
+requirePatterns("GPT engineering-planner", generatedGpt("engineering-planner"), [
+  ["clarify/specify/ticket modes", /Clarify.*Specify.*Ticket/is],
+  ["ticket approval checkpoint", /Publish only after approval/i],
+  ["no implementation boundary", /may not implement production code/i],
+  ["Wayfinder escalation", /Route to \*\*Wayfinder\*\*/i],
+]);
+
+requirePatterns("GPT wayfinder", generatedGpt("wayfinder"), [
+  ["one decision ticket per session", /Never resolve more than one non-research decision ticket in a session/i],
+  ["map as Workstream root", /canonical map.*Workstream root/is],
+  ["handoff to planner", /hand off the map to \*\*Engineering Planner\*\*/i],
+  ["no implementation deliverables", /produces decisions, not implementation deliverables/i],
+]);
+
+requirePatterns("GPT code-reviewer", generatedGpt("code-reviewer"), [
+  ["focused mode", /Focused mode/i],
+  ["delegated worker mode", /Delegated worker mode/i],
+  ["lease stop condition", /missing or inconsistent lease is a stop condition/i],
+  ["child-only write surface", /assigned child Issue only/i],
+  ["no code mutation", /without modifying code/i],
+]);
+
+requirePatterns("GPT review-composer", generatedGpt("review-composer"), [
+  ["compose phase", /\*\*Compose\*\*/i],
+  ["synthesize phase", /\*\*Synthesize\*\*/i],
+  ["coverage matrix", /coverage matrix/i],
+  ["native hierarchy", /native direct child of the Workstream root/i],
+  ["no production code mutation", /Never modify production code/i],
+]);
+
+requirePatterns("GPT triage-operator", generatedGpt("triage-operator"), [
+  ["recommend before mutation", /Present the recommendation and evidence before mutation/i],
+  ["no implementation claim", /must not edit production code, claim implementation/i],
+  ["Codex diagnosis route", /configured Codex diagnosis flow/i],
+  ["agent brief outcome", /publish a durable agent brief/i],
+]);
+
+const projectTemplate = read("gpts/project/instructions.template.md");
+requirePatterns("GPT Project template", projectTemplate, [
+  ["repository routing", /repository: <owner\/repository>/i],
+  ["workspace routing", /workspace: <absolute-or-home-relative-workspace-path>/i],
+  ["Workstream routing", /workstream_root:/i],
+  ["dynamic-state prohibition", /Do not store current HEAD, fixed point, active artifact/i],
+  ["Codex execution route", /implementation_diagnosis_correction_integration: "Codex"/i],
+]);
+
+for (const requiredPath of [
+  "gpts/README.md",
+  "gpts/smoke-tests.md",
+  "gpts/project/instructions.template.md",
+  "scripts/generate-gpt-instructions.mjs",
+]) {
+  if (!exists(requiredPath)) errors.push(`GPT packaging: missing ${requiredPath}`);
+}
+
 if (errors.length > 0) {
   console.error(errors.map((error) => `ERROR: ${error}`).join("\n"));
   process.exit(1);
 }
 
 console.log(
-  `Validated ${skills.length} skills, promoted manifests, docs coverage, invocation parity, and Workstream hooks.`,
+  `Validated ${skills.length} skills, promoted manifests, docs coverage, Workstream hooks, and ${expectedGptIds.length} GPT packages.`,
 );
