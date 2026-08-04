@@ -84,7 +84,7 @@ The first command previews changes. The second moves existing promoted-skill dir
 
 ### ChatGPT Web GPT roles
 
-This fork also packages six version-controlled ChatGPT Web roles: Matt, Engineering Planner, Wayfinder, Code Reviewer, Review Composer, and Triage Operator. Their complete GPT Builder instructions, shared policies, Project routing template, generator, and smoke tests live in [`gpts/`](./gpts/README.md).
+This fork also packages seven version-controlled ChatGPT Web roles: Matt, Grill With Docs, Engineering Planner, Wayfinder, Code Reviewer, Review Composer, and Triage Operator. Their complete GPT Builder instructions, shared policies, Project routing template, generator, and smoke tests live in [`gpts/`](./gpts/README.md).
 
 Run `npm run generate:gpts` after changing a role or shared policy, and `npm run check:gpts` to detect generated-instruction drift. Creating the remote GPTs remains a manual GPT Builder step.
 

@@ -294,6 +294,7 @@ for (const error of checkGeneratedInstructions()) {
 
 const expectedGptIds = [
   "matt",
+  "grill-with-docs",
   "engineering-planner",
   "wayfinder",
   "code-reviewer",
@@ -361,12 +362,22 @@ requirePatterns("GPT matt", generatedGpt("matt"), [
   ["routing-only boundary", /front door.*produce a routing envelope, and stop/is],
   ["read-only boundary", /Matt is read-only/i],
   ["Codex execution ownership", /Implementation, diagnosis, correction, and integration remain Codex-owned/i],
+  ["Grill With Docs routing", /goes to \*\*Grill With Docs\*\*/i],
+]);
+
+requirePatterns("GPT grill-with-docs", generatedGpt("grill-with-docs"), [
+  ["one-question interview", /Ask exactly one substantive question at a time/i],
+  ["domain glossary capture", /update `CONTEXT\.md` only for durable domain terminology/i],
+  ["ADR threshold", /hard to reverse, surprising without context, and the result of a real trade-off/i],
+  ["Planner handoff", /goes to \*\*Engineering Planner\*\*/i],
+  ["no specification publishing", /may not publish the final specification/i],
 ]);
 
 requirePatterns("GPT engineering-planner", generatedGpt("engineering-planner"), [
-  ["clarify/specify/ticket modes", /Clarify.*Specify.*Ticket/is],
+  ["specify/ticket modes", /Specify.*Ticket/is],
   ["ticket approval checkpoint", /Publish only after approval/i],
   ["no implementation boundary", /may not implement production code/i],
+  ["Grill With Docs escalation", /Route to \*\*Grill With Docs\*\*/i],
   ["Wayfinder escalation", /Route to \*\*Wayfinder\*\*/i],
 ]);
 
@@ -405,6 +416,8 @@ requirePatterns("GPT Project template", projectTemplate, [
   ["repository routing", /repository: <owner\/repository>/i],
   ["workspace routing", /workspace: <absolute-or-home-relative-workspace-path>/i],
   ["Workstream routing", /workstream_root:/i],
+  ["Grill With Docs routing", /idea_sharpening: "@Grill With Docs"/i],
+  ["Planner routing", /specification_and_ticketing: "@Engineering Planner"/i],
   ["dynamic-state prohibition", /Do not store current HEAD, fixed point, active artifact/i],
   ["Codex execution route", /implementation_diagnosis_correction_integration: "Codex"/i],
 ]);

@@ -16,7 +16,8 @@ tools:
 
 routing:
   default: "@Matt"
-  planning: "@Engineering Planner"
+  idea_sharpening: "@Grill With Docs"
+  specification_and_ticketing: "@Engineering Planner"
   uncertain_large_effort: "@Wayfinder"
   focused_review: "@Code Reviewer"
   cumulative_review: "@Review Composer"

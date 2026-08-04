@@ -1,8 +1,9 @@
 # ChatGPT Web GPT packages
 
-This directory packages six Phase 1 engineering roles as version-controlled GPT instructions:
+This directory packages seven Phase 1 engineering roles as version-controlled GPT instructions:
 
 - Matt
+- Grill With Docs
 - Engineering Planner
 - Wayfinder
 - Code Reviewer

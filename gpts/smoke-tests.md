@@ -1,18 +1,27 @@
 # Phase 1 GPT smoke tests
 
-Run these manually after creating the six GPTs. Use a disposable Workstream or read-only fixture where a test would otherwise mutate durable state.
+Run these manually after creating the seven GPTs. Use a disposable Workstream or read-only fixture where a test would otherwise mutate durable state.
 
 ## Matt
 
-1. Present a small, well-bounded feature. Expect one route to Engineering Planner and no repository or GitHub mutation.
-2. Present a large effort with unresolved dependent decisions. Expect Wayfinder rather than premature specification.
-3. Present a cumulative correction range spanning several tickets. Expect Review Composer rather than Code Reviewer.
+1. Present a loose but bounded feature idea that still needs questioning. Expect one route to Grill With Docs and no repository or GitHub mutation.
+2. Present a decision-complete feature that now needs a specification. Expect Engineering Planner.
+3. Present a large effort with unresolved dependent decisions. Expect Wayfinder rather than premature specification.
+4. Present a cumulative correction range spanning several tickets. Expect Review Composer rather than Code Reviewer.
+
+## Grill With Docs
+
+1. Present a fuzzy feature idea. Expect exactly one substantive question at a time, with later questions grounded in prior answers.
+2. Establish a durable domain term and a hard-to-reverse trade-off. Expect the glossary to capture the term and an ADR to be offered only for the trade-off.
+3. Ask it to publish a specification before important decisions are settled. Expect continued interview or a handoff, not a premature specification.
+4. Let the idea become settled. Expect a durable handoff to Engineering Planner with decisions, open questions, and one next action.
 
 ## Engineering Planner
 
-1. Provide a decision-rich conversation and request a specification. Expect synthesis without restarting the interview.
+1. Provide a decision-rich conversation or Grill With Docs handoff and request a specification. Expect synthesis without restarting the interview.
 2. Provide an approved specification. Expect tracer-bullet tickets, explicit blockers, a review checkpoint before publishing, and only frontier Project placement.
-3. Provide an effort with unresolved decision fog. Expect a Wayfinder handoff instead of invented decisions.
+3. Provide conversationally resolvable decision gaps. Expect a Grill With Docs handoff rather than invented decisions.
+4. Provide an effort with unresolved dependent decision fog. Expect a Wayfinder handoff instead of invented decisions.
 
 ## Wayfinder
 
