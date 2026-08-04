@@ -1,13 +1,15 @@
 ---
 name: workstream-tracking
-description: Coordinate one durable engineering workstream across a GitHub root issue, one local Git worktree and branch, active Issues or Pull Requests, Project state, and agent handoffs. Use whenever planning, implementation, diagnosis, review, correction, or integration must resolve, claim, update, hand off, reconcile, or complete shared work.
+description: Coordinate one durable engineering workstream across a GitHub root issue, one local Git worktree and branch, active Issues or Pull Requests, Project state, agent handoffs, and bounded delegated review leases. Use whenever planning, implementation, diagnosis, review composition, delegated review, review synthesis, correction, or integration must resolve, claim, update, hand off, reconcile, or complete shared work.
 ---
 
 # Workstream Tracking
 
 A reusable control-plane discipline for engineering flows.
 
-A **Workstream** is one durable objective worked through one persistent local Git **Worktree** and branch. GitHub carries the durable shared context; local Git carries execution truth. ChatGPT Web, Codex, and humans may take turns, but only one operator may control the workstream at a time.
+A **Workstream** is one durable objective worked through one persistent local Git **Worktree** and branch. GitHub carries the durable shared context; local Git carries execution truth. ChatGPT Web, Codex, and humans may take turns, but only one Workstream-level writer may control the objective at a time.
+
+Review swarms are the bounded exception: one composer keeps the Workstream-level writer claim while parallel reviewers receive delegated read-only leases with non-overlapping child-Issue write surfaces. They do not become competing Workstream writers.
 
 This skill is not a user-facing project-management flow. Other skills invoke it at lifecycle boundaries.
 
@@ -47,7 +49,7 @@ Default profiles in this fork:
 
 ### ChatGPT Web
 
-- normal activities: planning, specification, ticketing, review;
+- normal activities: planning, specification, ticketing, review, review-composition, delegated-review, review-synthesis;
 - local workspace transport: `@devspace`;
 - GitHub transport: connected `@github` MCP;
 - forbidden: native Codex filesystem or shell as a substitute, `gh`, direct GitHub REST or GraphQL, and the ChatGPT GitHub App.
@@ -78,7 +80,7 @@ Codex must operate directly in the configured Workstream directory. It must not 
 4. Do not create a new Workstream because a chat changed, a ticket changed, review began, corrective work appeared, or the branch merged once.
 5. Before every mutation, search for the existing root, label, issue, Project item, relationship, or managed block. Every operation must be safe to repeat.
 6. Resolve and enforce the current operator execution profile before using any local or GitHub tool. Never substitute another operator's transport, even when it is connected and convenient.
-7. Only one operator may control the Workstream at a time. Never steal a claim automatically.
+7. Only one Workstream-level writer may control the Workstream at a time. Never steal a claim automatically. Parallel delegated reviewers are allowed only under an active composer claim and valid non-overlapping delegated review leases.
 8. Project items contain operational state and links, never the full specification, diagnosis, review, or decision.
 9. A merge is an integration checkpoint, not automatic completion of the Workstream.
 10. Never delete the local worktree or branch automatically. Mark it eligible for cleanup and require an explicit instruction.
@@ -92,7 +94,7 @@ The caller should name the operation it needs:
 - `claim` — take cooperative ownership for one activity and active artifact
 - `register` — attach a durable Issue or Pull Request to the Workstream
 - `handoff` — record enough state for the next operator to continue
-- `transition` — move between planning, implementation, diagnosis, review, correction, integration, and completion
+- `transition` — move between planning, implementation, diagnosis, review composition, delegated review, review synthesis, correction, verification, integration, and completion
 - `reconcile` — compare GitHub state with local Git and repair safe omissions
 - `complete` — finish an artifact or the whole Workstream under explicit completion rules
 
@@ -156,7 +158,11 @@ Claim one activity:
 - `implementation`
 - `diagnosis`
 - `review`
+- `review-composition`
+- `delegated-review`
+- `review-synthesis`
 - `correction`
+- `verification`
 - `integration`
 
 Immediately before claiming:
@@ -178,12 +184,58 @@ If another operator still owns it and no explicit handoff exists, stop. Do not m
 Capture a fixed point:
 
 - implementation, diagnosis, or correction — current `HEAD` at claim time;
-- review — the handed-off fixed point and reviewed `HEAD`;
+- focused review — the handed-off fixed point and reviewed `HEAD`;
+- review composition and review synthesis — the handed-off fixed point, reviewed `HEAD`, and composer parent;
+- delegated review — the exact range, slice, axis, and child Issue named by the delegated lease;
 - integration — the exact source and target refs.
 
-Update only the root's managed state block, then set the root and active artifact to the configured active Project status.
+Update only the root's managed state block, then set the root and active artifact to the configured active Project status. A delegated reviewer does not update the root managed state block; it validates or records its lease on the assigned child Issue while the composer keeps the Workstream-level claim.
 
 Review is read-only against local files by default. Planning, specification, ticketing, and research may update tracker artifacts, `CONTEXT.md`, ADRs, specifications, tickets, and research notes, but not production code unless the user explicitly changes the activity. Prototype, implementation, diagnosis, correction, and integration may modify local code within their active artifact's scope. A reviewer must not review a moving target: review starts only after an explicit handoff pins the reviewed `HEAD`.
+
+## Delegated review leases
+
+A delegated review lease permits one parallel reviewer to contribute to a Review Composer without replacing the Workstream-level claim.
+
+The composer must retain:
+
+- operator: the configured composer operator, normally `ChatGPT Web`;
+- activity: `review-composition` or `review-synthesis`;
+- active artifact: the composer parent Issue;
+- fixed point and reviewed HEAD: the frozen review range.
+
+Each delegated lease must name:
+
+- composer Issue;
+- child review Issue;
+- frozen range;
+- assigned slice;
+- assigned axis;
+- allowed write surface;
+- local-code write policy;
+- Project and Workstream mutation policy.
+
+The allowed write surface is exactly one child review Issue. A worker may inspect code and Git history but may not modify local files, the composer parent, the Workstream root, Project state, sibling children, corrective Issues, diagnosis Issues, or the final verdict.
+
+Parallel delegated review is permitted only because code access is read-only and GitHub write surfaces do not overlap. The composer is the sole writer for:
+
+- the parent composer Issue;
+- the coverage matrix;
+- Workstream transitions and handoffs;
+- the final synthesis and verdict;
+- corrective or diagnosis Issue creation;
+- Project placement of follow-up work.
+
+To claim `delegated-review`:
+
+1. resolve the Workstream root, composer parent, child Issue, and native parent relationships;
+2. confirm the parent carries the composer marker and holds the Workstream-level claim;
+3. confirm the child contains a complete delegated lease;
+4. confirm the lease range matches the composer range and the reviewed commit remains resolvable;
+5. confirm no other reviewer lease writes to the same child;
+6. record or validate the lease on the child without changing the root claim.
+
+Missing lease, ambiguous slice or axis, non-native hierarchy, range mismatch, moving reviewed HEAD, overlapping write surface, or an inactive composer claim is a stop condition. Do not silently turn a delegated worker into a focused reviewer.
 
 Nested model-invoked skills inherit the caller's claim **and execution profile**. `/tdd`, `/domain-modeling`, `/research`, and other reusable disciplines must not replace an active claim or switch transports merely because they were invoked inside a claimed flow. A standalone invocation that needs to write must resolve an operator profile and claim an appropriate activity first.
 
@@ -195,6 +247,8 @@ Register only durable engineering artifacts:
 - implementation issue;
 - bug issue;
 - review issue when no Pull Request is the review surface;
+- Review Composer parent Issue;
+- delegated review child Issue;
 - corrective issue;
 - decision issue;
 - cleanup issue with an independent completion condition;
@@ -209,6 +263,17 @@ For every registered Issue or Pull Request:
 5. Add it to the Project only when active, blocked, under review, integrating, or on the immediate frontier.
 
 Do not mirror every child issue into the Project.
+
+Review Composer hierarchy is strict:
+
+- the composer parent is a native direct sub-issue of the Workstream root;
+- review workers are native direct sub-issues of the composer parent;
+- corrective and diagnosis Issues are native direct sub-issues of the Workstream root;
+- a review worker is never parented by an implementation ticket;
+- body links never substitute for native relationships;
+- if the configured transport cannot mutate native sub-issues, report the capability gap and stop.
+
+The composer parent is added to the Project while active. Review children stay outside the Project by default and are added only when blocked or requiring human attention. Corrective and diagnosis Issues are added only when active or on the immediate frontier.
 
 ## Handoff
 
@@ -227,6 +292,8 @@ Post the handoff on the active Issue or Pull Request, not only on the root. Incl
 
 Then update the root managed block to point at that handoff and transfer or release the claim. Project state follows the next action: active while another phase remains, done only when the artifact is complete.
 
+A delegated reviewer is different: it posts completion only on its assigned child Issue and closes that child. It does not post a Workstream handoff or update the root. The composer performs the review-synthesis handoff after every child is complete.
+
 Do not paste full terminal logs or private reasoning. Record facts another operator needs to continue.
 
 ## Transition
@@ -235,6 +302,11 @@ Typical transitions are:
 
 ```text
 planning -> specification -> ticketing -> implementation -> review
+implementation -> review-composition -> delegated-review -> review-synthesis
+review-synthesis -> correction -> review-composition
+review-synthesis -> diagnosis -> correction
+review-synthesis -> verification
+review-synthesis -> integration
 review -> correction -> review
 review -> integration
 diagnosis -> correction -> review
@@ -268,6 +340,10 @@ Run `reconcile` at the start of a resumed session and before declaring completio
 ## Complete
 
 An artifact is complete only when its acceptance conditions are met, required verification is recorded, and no work remains in its scope. Close the Issue or merge the Pull Request through the configured tracker workflow, then set its Project item to done.
+
+A delegated review child is complete only when its required report, no-finding areas, verification limits, exclusions, and completion status are posted. Closing a child does not complete the composer.
+
+A Review Composer parent is complete only when every child is complete, the coverage matrix is complete, the final synthesis and verdict are posted, and follow-up routing is recorded. Corrective and diagnosis Issues created by synthesis remain siblings under the Workstream root; they do not need to close before the composer artifact itself can close.
 
 A Workstream is complete only when:
 

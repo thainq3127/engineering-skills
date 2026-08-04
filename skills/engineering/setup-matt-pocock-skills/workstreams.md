@@ -42,17 +42,20 @@ Allowed operator names:
 - `Human`
 - `Unassigned`
 
-Only one operator may control a Workstream at a time. Claims are cooperative; an agent must not steal another operator's claim without an explicit handoff or human direction.
+Only one Workstream-level writer may control a Workstream at a time. Claims are cooperative; an agent must not steal another operator's claim without an explicit handoff or human direction.
+
+Parallel review is the bounded exception. One Review Composer retains the Workstream-level claim while delegated reviewers receive read-only leases scoped to different child review Issues. They do not become additional Workstream writers.
 
 ## Operator execution profiles
 
 ### ChatGPT Web
 
-- Default activities: planning, specification, ticketing, review
+- Default activities: planning, specification, ticketing, review, review-composition, delegated-review, review-synthesis
 - Local workspace transport: `@devspace`
 - GitHub transport: connected `@github` MCP
 - Default owner of `/implement`: no
 - Default owner of `/code-review`: yes
+- Default owner of `/review-composer`: yes
 - Forbidden transports:
   - native Codex filesystem or shell as a substitute
   - `gh`
@@ -66,6 +69,7 @@ Only one operator may control a Workstream at a time. Claims are cooperative; an
 - GitHub transport: authenticated `gh` CLI
 - Default owner of `/implement`: yes
 - Default owner of `/code-review`: no
+- Default owner of `/review-composer`: no
 - Forbidden transports:
   - `@devspace`
   - `@github` MCP
@@ -78,6 +82,7 @@ Only one operator may control a Workstream at a time. Claims are cooperative; an
 - GitHub transport: `<configured human workflow>`
 - Default owner of `/implement`: no
 - Default owner of `/code-review`: no
+- Default owner of `/review-composer`: no
 - Forbidden transports: `<none or explicit list>`
 
 ### Missing transport behavior
@@ -102,6 +107,54 @@ The root has `workstream` plus `ws:<slug>`. Every non-root Workstream artifact h
 
 Area labels such as `area:web-next` are optional and repository-specific. Do not invent new label families during a flow.
 
+## Review swarm hierarchy
+
+The required native hierarchy is:
+
+```text
+Workstream root
+├── Specifications
+├── Implementation tickets
+├── Review Composer
+│   ├── Review child
+│   ├── Review child
+│   └── Review child
+├── Corrective issues
+├── Diagnosis issues
+└── Verification or integration artifacts
+```
+
+- The Review Composer parent is a native direct sub-issue of the Workstream root.
+- Review children are native direct sub-issues of the composer parent.
+- Corrective and diagnosis Issues are native direct sub-issues of the Workstream root and must not be children of the composer.
+- A review child must not be parented by an implementation ticket.
+- Body links do not replace native sub-issue relationships.
+- If the configured GitHub transport cannot create or read the required native hierarchy, stop and report the capability gap.
+
+## Delegated review leases
+
+The composer keeps the Workstream-level claim with activity `review-composition` or `review-synthesis` and active artifact set to the composer parent.
+
+Each reviewer lease is bounded by:
+
+- composer Issue;
+- child review Issue;
+- frozen range;
+- slice;
+- axis;
+- allowed write surface.
+
+The reviewer may inspect code but may write only to its assigned child Issue. It may not modify local files, Project state, Workstream state, the composer parent, sibling reviews, corrective Issues, diagnosis Issues, or the final verdict. Missing or ambiguous lease data is a stop condition.
+
+## Review routing
+
+- Focused Pull Request, single-ticket review, or one narrow domain slice: use `/code-review` in focused mode.
+- Large cumulative review, multi-ticket correction range, multi-domain batch, or cross-cutting diff: use `/review-composer`.
+- Child Issue under a Review Composer: use `/code-review` in delegated worker mode with the child lease.
+- Unknown-cause defect: use `/diagnosing-bugs` before defining corrective work.
+
+Only the composer synthesizes a swarm, updates the parent verdict, transitions the Workstream, and creates corrective or diagnosis Issues.
+
 ## Project membership
 
 Always add an active Workstream root.
@@ -115,6 +168,14 @@ Add a child Issue or Pull Request only when it is:
 - on the immediate dependency frontier.
 
 Do not mirror every repository issue, branch, worktree, commit, or agent session into the Project.
+
+Review-specific placement:
+
+- add the active Review Composer parent and set it to `In Progress`;
+- do not add review children by default;
+- add a review child only when blocked or requiring human attention;
+- add corrective or diagnosis Issues only when active or on the immediate frontier;
+- use the composer's native `Sub-issues progress` for normal swarm progress.
 
 ## Completion and cleanup
 

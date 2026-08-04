@@ -1,16 +1,20 @@
 ---
 name: code-review
-description: Review a frozen change range between a fixed point and a pinned reviewed HEAD along two axes — Standards and Spec — then publish findings and hand off the Workstream. Runs both reviews in parallel sub-agents. Use when the user wants to review a branch, PR, or work-in-progress range.
+description: Review a frozen change range in either focused mode or as one delegated worker in a Review Composer swarm. Use for a small PR, one implementation ticket, one narrow domain slice, or a composer child with an exact slice, axis, lease, and write surface.
 ---
 
-Two-axis review of the diff between a pinned reviewed `HEAD` and a fixed point:
+# Code Review
 
-- **Standards** — does the code conform to this repo's documented coding standards?
-- **Spec** — does the code faithfully implement the originating issue / PRD / spec?
+Review the diff between a fixed point and a pinned reviewed `HEAD`.
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+This skill has two modes:
 
-The issue tracker and Workstream protocol should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` or `docs/agents/workstreams.md` is missing.
+- **Focused mode** — one small Pull Request, one implementation ticket, or one narrow domain slice that one reviewer can hold reliably.
+- **Delegated worker mode** — one native child Issue of a Review Composer, bounded to an exact frozen range, slice, axis, and allowed write surface.
+
+Do not use focused mode to absorb a large cumulative implementation batch. When the range spans several tickets, several domains, a large diff, or cross-domain seams, route to `/review-composer`.
+
+The issue tracker and Workstream protocol should already be configured. Run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` or `docs/agents/workstreams.md` is missing.
 
 ## Operator contract
 
@@ -20,118 +24,212 @@ Unless the user explicitly overrides the operator for this run:
 
 1. Require the configured operator to be `ChatGPT Web`.
 2. Use `@devspace` for every local file read, code inspection, Git command, diff, test, and local write.
-3. Use connected `@github` MCP for every GitHub read and write, including the review surface, labels, native sub-issue relationships, Project items, corrective Issues, and handoffs.
+3. Use connected `@github` MCP for every GitHub read and write, including review surfaces, comments, labels, native sub-issue relationships, Project items, corrective Issues, and handoffs.
 4. Never use native Codex filesystem or shell access as a substitute, `gh`, the ChatGPT GitHub App, or direct REST/GraphQL fallback.
 5. If `@devspace` or `@github` is unavailable, stop and report the missing capability.
-6. If invoked from Codex without an explicit operator override, do not perform the review. Leave the frozen implementation handoff intact and transfer the next action to ChatGPT Web.
+6. If invoked from Codex without an explicit operator override, do not perform the review. Preserve the frozen implementation handoff and transfer the next action to ChatGPT Web.
 
-An explicit override changes the operator only for that run; the overridden operator must still use its own configured execution profile.
+An explicit override changes the operator only for that run. The overridden operator must still use its configured execution profile.
 
-## Workstream envelope
+## Select the mode
 
-Before reviewing, run `/workstream-tracking` with operation `resolve`, then `reconcile`.
+Resolve the active review artifact and its native parent before inspecting the diff.
 
-Choose the durable review surface before doing the review:
+Use **delegated worker mode** when all of these are true:
 
-- **Pull Request review** — publish the review on the Pull Request.
-- **Branch or specification review without a Pull Request** — search for an existing review Issue, otherwise create one with `kind:review` and the current `ws:<slug>` label.
-- **Small verification of one source Issue** — use a comment on that Issue when a separate review artifact would add no value.
+- the active Issue is a native direct sub-issue of an Issue marked `<!-- review-composer:v1 -->`;
+- the child contains a `<!-- delegated-review-lease:v1 -->` block;
+- the lease pins the composer Issue, child Issue, frozen range, slice, axis, and allowed write surface.
 
-Claim activity `review`. A review claim is read-only by default and must pin both the fixed point and reviewed `HEAD`. Run `git rev-parse HEAD` through `@devspace` and record the result as `reviewed-head`. Do not review while another operator is still writing or while `HEAD` is moving.
+Missing delegated lease is a stop condition. A body link to a parent is not enough.
 
-## Process
+Use **focused mode** otherwise, but only when the review is genuinely bounded to one small PR, one source ticket, or one narrow domain slice. If the range is multi-ticket, multi-domain, cross-cutting, or too large for one reviewer context, stop and hand it to `/review-composer` instead of quietly widening focused mode.
 
-### 1. Pin the fixed point
+## Shared frozen-range checks
 
-Use the fixed point the user supplied or the implementation handoff pinned. If neither exists, ask for one. Never guess a review range from a branch name alone.
+Before either mode:
 
-Capture the diff command once: `git diff <fixed-point>...<reviewed-head>` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..<reviewed-head> --oneline`.
+1. Run `/workstream-tracking` with operation `resolve`, then `reconcile`.
+2. Use the fixed point and reviewed HEAD supplied by the implementation handoff, composer parent, or child lease. Never guess from a branch name.
+3. Resolve both refs through `@devspace`.
+4. Capture `git diff <fixed-point>...<reviewed-head>` and `git log <fixed-point>..<reviewed-head> --oneline`.
+5. Confirm the diff is non-empty.
+6. Confirm no unexpected merge or rebase is active.
 
-Before going further, confirm both refs resolve and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
+Review is read-only against local files. Verification commands may run only when they do not modify tracked or untracked workspace state. If a command would install dependencies, rewrite snapshots, generate artifacts, or mutate the workspace, do not run it; record the limitation.
 
-### 2. Identify the spec source
+## Review sources
 
-Look for the originating spec, in this order:
+### Specification sources
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
-2. A path the user passed as an argument.
-3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+Resolve the applicable specification in this order:
 
-### 3. Identify the standards sources
+1. the Review Composer parent and child prompt, when delegated;
+2. source Issue references in commit messages;
+3. a user-supplied Issue, PRD, or spec path;
+4. a matching file under `docs/`, `specs/`, or `.scratch/`.
 
-Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+In delegated mode, do not replace the composer's precedence rules or add excluded requirements. In focused mode, if no specification exists, report `no spec available` rather than inventing one.
 
-On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
+### Standards sources
 
-- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
-- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation — and, like any standard here, skip anything tooling already enforces.
+Read repository instructions and documented standards such as `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, or `CODING_STANDARDS.md`.
 
-Each smell reads *what it is* → *how to fix*; match it against the diff:
+The Standards axis also carries this Fowler smell baseline. Repository rules override it, tooling-enforced formatting is skipped, and every baseline smell remains a judgement call:
 
-- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
-- **Duplicated Code** — the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
-- **Feature Envy** — a method that reaches into another object's data more than its own. → move the method onto the data it envies.
-- **Data Clumps** — the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
-- **Primitive Obsession** — a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
-- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
-- **Shotgun Surgery** — one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
-- **Divergent Change** — one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
-- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
-- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
-- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
-- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
+- **Mysterious Name** — a name does not reveal what it does or holds. Rename it; if no honest name exists, the design is unclear.
+- **Duplicated Code** — the same logic shape appears in more than one changed place. Extract the shared shape.
+- **Feature Envy** — a function reaches into another object's data more than its own. Move behavior toward the data.
+- **Data Clumps** — the same fields repeatedly travel together. Give the group a type.
+- **Primitive Obsession** — a primitive stands in for a domain concept. Model the concept explicitly.
+- **Repeated Switches** — the same type switch recurs. Centralize it or replace it with polymorphism.
+- **Shotgun Surgery** — one logical change requires scattered edits. Gather the changing behavior behind one boundary.
+- **Divergent Change** — one module changes for unrelated reasons. Split responsibilities.
+- **Speculative Generality** — abstraction exists for requirements the spec does not have. Remove it until a real need appears.
+- **Message Chains** — callers navigate deep object graphs. Hide navigation behind a suitable interface.
+- **Middle Man** — a layer only delegates. Remove it or give it real policy.
+- **Refused Bequest** — an implementation rejects most inherited behavior. Prefer composition.
 
-### 4. Spawn both sub-agents in parallel
+## Focused mode
 
-Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both.
+### 1. Claim and choose the review surface
 
-**Standards sub-agent prompt** — include:
+Claim activity `review` through `/workstream-tracking` with the pinned fixed point and reviewed HEAD.
 
-- The full diff command and commit list.
-- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
-- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+Choose one durable surface:
 
-**Spec sub-agent prompt** — include:
+- Pull Request review for a PR;
+- focused review Issue for a branch or source ticket without a PR;
+- source-Issue comment only for a tiny verification where a separate artifact would add no value.
 
-- The diff command and commit list.
-- The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+### 2. Review both axes
 
-If the spec is missing, skip the Spec sub-agent and note this in the final report.
+Focused mode reviews two independent axes:
 
-### 5. Aggregate
+- **Standards** — repo instructions, documented conventions, architecture boundaries, and the smell baseline.
+- **Specification** — missing or partial requirements, incorrect implementations, and unrequested scope.
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
+Use separate contexts or parallel sub-agents when the harness supports them, so one axis does not anchor the other. Keep the reports separate. Do not merge or rerank Standards and Specification findings into one blended list before publication.
 
-End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+Each finding must include:
 
-### 6. Publish and hand off
+- severity and confidence;
+- location;
+- violated standard or specification requirement;
+- evidence;
+- impact;
+- suggested correction boundary.
 
-Before publishing, confirm `git rev-parse HEAD` still equals `<reviewed-head>`. If it changed, stop and restart against a newly handed-off range; do not publish a review of a moving target.
+Also report no-finding areas, questions or insufficient evidence, verification performed and not performed, and explicit exclusions.
 
-Publish the two-axis report to the durable review surface selected above through `@github`.
+### 3. Publish and route
 
-Route findings deliberately:
+Before publishing, confirm `git rev-parse <reviewed-head>` still resolves to the pinned commit and the review surface still names the same range.
 
-- a small finding within the current Issue's scope stays on the review artifact;
-- independent corrective work gets its own Issue only when it has a distinct outcome and acceptance conditions;
-- every corrective Issue receives `kind:corrective`, the Workstream label and marker, links to the review and source implementation artifact, and Project registration only when active or on the immediate frontier;
-- do not create one corrective Issue per comment when several findings share one coherent fix.
+Publish Standards and Specification separately, then summarize the count and worst severity within each axis.
 
-Then run `/workstream-tracking` with operation `handoff`:
+In focused mode, coherent corrective work may be registered through `/workstream-tracking` when it has an independent outcome and acceptance criteria. Do not create one Issue per comment. Route unclear defects to `/diagnosing-bugs`.
 
-- no blocking findings → transition to `integration` or complete the source artifact as appropriate;
-- blocking findings → transition to `correction`, naming the first corrective artifact and next operator;
-- no specification available → preserve that limitation in the handoff rather than silently treating the Spec axis as passed.
+Handoff:
 
-Keep the Workstream root open while further implementation, correction, review, or integration remains.
+- no blocking findings → integration, verification, or source-artifact completion;
+- blocking findings → correction with the first coherent corrective artifact;
+- insufficient evidence → diagnosis or verification, preserving the limitation.
 
-## Why two axes
+Keep the Workstream root open while work remains.
 
-A change can pass one axis and fail the other:
+## Delegated worker mode
 
-- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
-- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+Delegated mode is not a smaller composer. It is one bounded reviewer lease.
 
-Reporting them separately stops one axis from masking the other.
+### 1. Validate hierarchy and lease
+
+Read the Workstream root, composer parent, child Issue, parent relationship, and lease through `@github`.
+
+Confirm:
+
+- the composer parent is a native direct child of the Workstream root;
+- this child is a native direct child of the composer;
+- the composer holds the Workstream-level `review-composition` or `review-synthesis` claim;
+- the lease names this exact composer and child;
+- the lease range matches the parent;
+- the assigned slice and axis are unambiguous;
+- the allowed write surface is this child Issue only.
+
+Run `/workstream-tracking` with activity `delegated-review`. This records or validates the delegated lease without replacing the composer's Workstream-level claim.
+
+If any condition fails, stop. Do not repair hierarchy, change the lease, or take over the root.
+
+### 2. Stay inside the assignment
+
+Review only the exact frozen range and assigned slice/axis.
+
+- Do not review explicit exclusions.
+- Do not broaden into a full-batch review.
+- Do not change the fixed point or reviewed HEAD.
+- Do not modify local files.
+- Do not update the composer parent verdict.
+- Do not change Workstream root state or Project state.
+- Do not create corrective or diagnosis Issues.
+- Do not deduplicate or rerank findings from other reviewers.
+
+When evidence crosses a domain boundary, inspect only enough of the adjacent seam to support or reject the assigned finding. Record the cross-slice dependency for synthesis rather than claiming the adjacent slice.
+
+### 3. Write the child report
+
+Write findings only to the assigned child Issue. The minimum output is:
+
+```markdown
+## Scope
+
+- Reviewed HEAD: `<sha>`
+- Frozen range: `<fixed-point>...<reviewed-head>`
+- Axis: <axis>
+- Slice: <slice>
+
+## Findings
+
+### <finding>
+
+- Severity: <blocker|major|minor>
+- Confidence: <high|medium|low>
+- Location: <file, symbol, or hunk>
+- Requirement or standard: <source>
+- Evidence: <concrete evidence>
+- Impact: <why it matters>
+- Correction boundary: <coherent owning fix>
+- Cross-slice dependency: <child or none>
+
+## No-finding areas
+
+- <area checked with no finding>
+
+## Questions or insufficient evidence
+
+- <question or none>
+
+## Verification
+
+- Performed: <commands or inspection>
+- Not performed: <limitations>
+
+## Explicit exclusions
+
+- <exclusion>
+
+## Completion
+
+- Status: complete
+```
+
+Do not omit no-finding areas or exclusions. They are coverage evidence for the composer.
+
+### 4. Complete only the child
+
+Before completion, confirm the reviewed commit and range still match the lease. Post the final report and close the child Issue as completed.
+
+Do not post a Workstream handoff, alter the composer parent, create follow-up tickets, or transition the Project. The composer is the only writer for synthesis, parent verdict, Workstream transition, and corrective or diagnosis issue creation.
+
+## Why the modes stay separate
+
+Focused review owns one coherent review and may route its own result. Delegated review contributes evidence to a larger review but owns no global verdict. Mixing the two would allow parallel workers to race on the parent, duplicate tickets, widen ranges, and turn six bounded reviews into six conflicting control planes.

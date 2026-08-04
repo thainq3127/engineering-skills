@@ -14,7 +14,7 @@ npx skills update ask-matt
 
 `ask-matt` is the router over the skills in this repo. You describe the situation you're in; it tells you which skill or flow fits and in what order to run them.
 
-It **does no work itself**. It doesn't grill, write a spec, or fix anything — it only orients. It exists for the **user-invoked** skills above all: nothing fires those for you, so *you* have to remember they exist, and `ask-matt` is the memory you offload that to. It also points at the model-invoked disciplines that run underneath the flows — `/tdd`, `/diagnosing-bugs`, `/prototype`, `/code-review`, `/workstream-tracking`, and the vocabulary references `/domain-modeling` and `/codebase-design`. It answers "which one, and when", then hands you off to the skill that actually does the job.
+It **does no work itself**. It doesn't grill, write a spec, or fix anything — it only orients. It exists for the **user-invoked** skills above all: nothing fires those for you, so *you* have to remember they exist, and `ask-matt` is the memory you offload that to. It also points at the model-invoked disciplines that run underneath the flows — `/tdd`, `/diagnosing-bugs`, `/prototype`, `/review-composer`, `/code-review`, `/workstream-tracking`, and the vocabulary references `/domain-modeling` and `/codebase-design`. It answers "which one, and when", then hands you off to the skill that actually does the job.
 
 ## When to reach for it
 
@@ -24,9 +24,11 @@ Reach for it whenever you're unsure which skill or flow a situation calls for: y
 
 ## Flows, not just skills
 
-The idea `ask-matt` gives you to think with is the **flow** — a path *through* the skills rather than a single one. Most work runs along one **main flow** (idea → ship: grill → spec → tickets → implement → review), two **on-ramps** merge onto it (a triage lane for incoming bugs and requests; a codebase-health lane that generates ideas), and everything else is a **standalone** you reach for on its own. Ask a question and you get placed on the right flow, at the right step — not just handed a tool.
+The idea `ask-matt` gives you to think with is the **flow** — a path *through* the skills rather than a single one. Most work runs along one **main flow** (idea → ship: grill → spec → tickets → implement → focused review or review swarm), two **on-ramps** merge onto it (a triage lane for incoming bugs and requests; a codebase-health lane that generates ideas), and everything else is a **standalone** you reach for on its own. Ask a question and you get placed on the right flow, at the right step — not just handed a tool.
 
-When Workstreams are enabled, `/workstream-tracking` is the control-plane layer beneath that map. It keeps the root issue, one local worktree and branch, active tracker artifacts, Project status, claims, and handoffs aligned while the user-invoked flow stays focused on its engineering job. Writer disciplines inherit the current claim, so nested TDD, domain modeling, prototypes, research capture, and conflict resolution cannot silently become a second writer.
+When Workstreams are enabled, `/workstream-tracking` is the control-plane layer beneath that map. It keeps the root issue, one local worktree and branch, active tracker artifacts, Project status, claims, delegated review leases, and handoffs aligned while the user-invoked flow stays focused on its engineering job. Writer disciplines inherit the current claim, while review swarms keep one composer writer and several child-Issue-only reviewers.
+
+The review fork is explicit: focused PRs, single-ticket changes, and narrow domain slices go to [code-review](https://aihero.dev/skills-code-review); large cumulative ranges, multi-ticket corrections, and multi-domain or cross-cutting batches go to [review-composer](https://aihero.dev/skills-review-composer). A bug without a known cause goes to [diagnosing-bugs](https://aihero.dev/skills-diagnosing-bugs) before anyone invents a correction.
 
 ## Where it fits
 

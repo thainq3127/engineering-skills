@@ -29,7 +29,7 @@ Look at the current repository and connected tools. Read whatever exists; do not
 - `docs/agents/issue-tracker.md`, `docs/agents/workstreams.md`, `docs/agents/triage-labels.md`, and `docs/agents/domain.md`
 - `CONTEXT.md`, `CONTEXT-MAP.md`, and ADR directories
 - `.scratch/` — evidence of a local-markdown issue tracker convention
-- whether the `triage` and `workstream-tracking` skills are installed
+- whether the `triage`, `workstream-tracking`, and `review-composer` skills are installed
 - monorepo signals such as `pnpm-workspace.yaml`, a `workspaces` field, or multiple populated packages
 
 If GitHub Projects v2 is already in use, list the available Projects, fields, and a small sample of items before recommending one. Do not mutate anything during exploration.
@@ -64,7 +64,7 @@ Run this section when `workstream-tracking` is installed. Otherwise omit it.
 
 Recommend enabling Workstreams when work spans multiple sessions or when ChatGPT Web, Codex, and humans take turns on the same local code. Explain the invariant:
 
-> One durable Workstream has one canonical root issue, one persistent local worktree, one persistent branch, and one cooperative current operator.
+> One durable Workstream has one canonical root issue, one persistent local worktree, one persistent branch, and one cooperative Workstream-level writer. A Review Composer may delegate parallel read-only review leases without creating additional Workstream writers.
 
 Collect or confirm:
 
@@ -76,10 +76,19 @@ Collect or confirm:
 6. Worktree path and branch naming patterns.
 7. Allowed operator names, normally `ChatGPT Web`, `Codex`, `Human`, and `Unassigned`.
 8. An execution profile for every operator: default activities, local workspace transport, GitHub transport, forbidden transports, and missing-transport behavior.
-9. Default flow ownership: `/implement` belongs to Codex and `/code-review` belongs to ChatGPT Web unless explicitly overridden.
-10. Label registry and whether optional `area:*` labels already exist.
+9. Default flow ownership: `/implement` belongs to Codex; `/code-review` and `/review-composer` belong to ChatGPT Web unless explicitly overridden.
+10. Review hierarchy and delegated lease policy:
+    - Review Composer parent as a native direct child of the Workstream root;
+    - review workers as native direct children of the composer;
+    - corrective and diagnosis Issues as direct children of the Workstream root;
+    - composer-only synthesis, Workstream transition, and follow-up ticket creation;
+    - review children outside the Project by default;
+    - native sub-issue capability gaps are stop conditions.
+11. Label registry and whether optional `area:*` labels already exist.
 
 Write the result to `docs/agents/workstreams.md`, using [workstreams.md](./workstreams.md) as the seed. If disabled, still write a short file saying Workstreams are disabled so model-invoked skills do not guess.
+
+The generated Workstream document must make the review fork explicit: focused single-ticket or single-domain review uses `/code-review`; cumulative multi-ticket, multi-domain, large, or cross-cutting review uses `/review-composer`; composer children use `/code-review` only in delegated worker mode.
 
 #### Section C — Triage label vocabulary
 
@@ -162,7 +171,7 @@ Report:
 
 - files written or updated;
 - tracker and GitHub access policy;
-- Workstream Project, worktree root, base branch, operators, and execution profiles;
+- Workstream Project, worktree root, base branch, operators, execution profiles, review hierarchy, and delegated review lease policy;
 - which skills now consume each file;
 - any MCP capability gaps left pending.
 

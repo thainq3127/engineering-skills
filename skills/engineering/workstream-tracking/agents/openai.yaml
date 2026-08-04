@@ -1,3 +1,3 @@
 interface:
   display_name: "Workstream Tracking"
-  short_description: "Coordinate GitHub work and one local worktree"
+  short_description: "Coordinate Workstreams, claims, handoffs, and review leases"

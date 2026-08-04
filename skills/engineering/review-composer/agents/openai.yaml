@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Composer"
+  short_description: "Compose and synthesize a bounded review swarm"

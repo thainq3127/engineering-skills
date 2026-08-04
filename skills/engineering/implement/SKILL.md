@@ -73,13 +73,27 @@ Record:
 - remaining work;
 - next operator, activity, and action.
 
-When implementation is ready for review, transition to `review`, freeze the reviewed `HEAD`, and keep the Project item active.
+When implementation is ready for review, freeze the reviewed `HEAD`, keep the Project item active, and classify the review shape before naming the next skill.
+
+Handoff to `/review-composer` when the review range has any of these signals:
+
+- several implementation or corrective tickets contribute to one cumulative range;
+- several domain slices are changed;
+- the cumulative diff is large enough that one reviewer would need to compress or sample important areas;
+- cross-cutting transactions, migrations, authorization, lifecycle, or integration seams need independent coverage;
+- this is a cumulative re-review after several corrective Issues.
+
+Handoff directly to `/code-review` only for a focused single-ticket, single-domain, or small Pull Request scope.
+
+In both cases record the fixed point, reviewed HEAD, diff command, source tickets, applicable specifications, exclusions, and verification evidence. The routing decision must be explicit in the handoff.
 
 ## Review
 
 The implementation handoff happens **before** review begins.
 
 - If a different operator will review, stop after the handoff.
-- If the current session is explicitly continuing as reviewer, transfer the claim to activity `review`, then run `/code-review` against the pinned fixed point and frozen implementation `HEAD`.
+- Do not let Codex compose or run a review swarm. A large or cumulative range transfers to ChatGPT Web and `/review-composer`.
+- For a focused review, the next ChatGPT Web session claims activity `review` and runs `/code-review` against the pinned fixed point and frozen implementation `HEAD`.
+- For a swarm review, the next ChatGPT Web session claims activity `review-composition` and runs `/review-composer` against the same pinned range.
 
 When review and required integration are complete, use `complete` for the Issue. Do not close the Workstream root merely because one implementation Issue finished or one merge landed.

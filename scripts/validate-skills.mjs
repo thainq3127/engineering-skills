@@ -9,6 +9,12 @@ const read = (relativePath) =>
 
 const exists = (relativePath) => fs.existsSync(path.join(root, relativePath));
 
+const requirePatterns = (label, text, patterns) => {
+  for (const [description, pattern] of patterns) {
+    if (!pattern.test(text)) errors.push(`${label}: missing ${description}`);
+  }
+};
+
 const parseJson = (relativePath) => {
   try {
     return JSON.parse(read(relativePath));
@@ -141,12 +147,20 @@ if (!workstreamSkill) {
   errors.push("workstream-tracking: must remain model-invoked");
 }
 
+const reviewComposer = skills.find((skill) => skill.name === "review-composer");
+if (!reviewComposer) {
+  errors.push("review-composer: promoted skill is missing");
+} else if (reviewComposer.userInvoked) {
+  errors.push("review-composer: must remain model-invoked so implementation and routing flows can hand off to it");
+}
+
 for (const name of [
   "ask-matt",
   "grill-with-docs",
   "to-spec",
   "to-tickets",
   "implement",
+  "review-composer",
   "code-review",
   "diagnosing-bugs",
   "triage",
@@ -209,6 +223,66 @@ for (const requiredPhrase of [
   if (!codeReviewSkill.includes(requiredPhrase)) {
     errors.push(`code-review: missing operator contract ${requiredPhrase}`);
   }
+}
+
+requirePatterns("code-review", codeReviewSkill, [
+  ["focused review mode", /Focused mode/i],
+  ["delegated worker contract", /Delegated worker mode/i],
+  ["delegated lease stop condition", /Missing delegated lease is a stop condition/i],
+  ["child-only write surface", /allowed write surface is this child Issue only/i],
+  ["delegated prohibition on corrective issue creation", /Do not create corrective or diagnosis Issues/i],
+  ["large-review route to review-composer", /route to `?\/review-composer`?/i],
+]);
+
+const reviewComposerSkill = read("skills/engineering/review-composer/SKILL.md");
+requirePatterns("review-composer", reviewComposerSkill, [
+  ["compose phase", /Phase 1: Compose/i],
+  ["synthesize phase", /Phase 2: Synthesize/i],
+  ["coverage matrix", /coverage matrix/i],
+  ["ChatGPT Web operator profile", /ChatGPT Web-owned flow by default/i],
+  ["native Workstream parent hierarchy", /composer parent.*native direct sub-issue of the Workstream root/is],
+  ["native child hierarchy", /child.*native direct sub-issue of the composer parent/is],
+  ["root-level corrective routing", /corrective or diagnosis Issue.*native direct sub-issue of the Workstream root/is],
+  ["composer-only synthesis writes", /Only the composer may create corrective or diagnosis Issues/i],
+  ["no silent native hierarchy fallback", /Body links are not a substitute for native hierarchy/i],
+]);
+
+const workstreamTrackingSkill = read("skills/engineering/workstream-tracking/SKILL.md");
+requirePatterns("workstream-tracking", workstreamTrackingSkill, [
+  ["review-composition activity", /review-composition/],
+  ["delegated-review activity", /delegated-review/],
+  ["review-synthesis activity", /review-synthesis/],
+  ["delegated review lease", /Delegated review leases/i],
+  ["non-overlapping write surfaces", /non-overlapping child-Issue write surfaces/i],
+  ["composer-only Workstream writes", /composer is the sole writer/i],
+  ["corrective issues outside composer", /corrective and diagnosis Issues are native direct sub-issues of the Workstream root/i],
+]);
+
+requirePatterns("implement", implementSkill, [
+  ["large cumulative review route", /Handoff to `?\/review-composer`?.*several implementation or corrective tickets/is],
+  ["focused review route", /Handoff directly to `?\/code-review`? only for a focused/is],
+  ["Codex swarm prohibition", /Do not let Codex compose or run a review swarm/i],
+]);
+
+const askMattSkill = read("skills/engineering/ask-matt/SKILL.md");
+requirePatterns("ask-matt", askMattSkill, [
+  ["large cumulative review routing", /Large cumulative review.*`\/review-composer`/i],
+  ["multi-ticket correction routing", /multi-ticket correction range.*`\/review-composer`/i],
+  ["focused review routing", /Focused PR.*`\/code-review`/i],
+  ["unknown-cause bug routing", /cause is still unclear.*`\/diagnosing-bugs`/i],
+]);
+
+const workstreamTemplate = read("skills/engineering/setup-matt-pocock-skills/workstreams.md");
+requirePatterns("Workstream setup template", workstreamTemplate, [
+  ["review hierarchy", /Review swarm hierarchy/i],
+  ["delegated review leases", /Delegated review leases/i],
+  ["composer Project placement", /add the active Review Composer parent/i],
+  ["review children outside Project", /do not add review children by default/i],
+  ["corrective issues outside composer", /must not be children of the composer/i],
+]);
+
+if (!exists("docs/engineering/review-composer.md")) {
+  errors.push("review-composer: missing docs/engineering/review-composer.md");
 }
 
 if (errors.length > 0) {
