@@ -14,7 +14,7 @@ npx skills update workstream-tracking
 
 Workstream Tracking coordinates one durable objective across a canonical GitHub root issue, one persistent local worktree and branch, active Issues or Pull Requests, Project state, and handoffs between agents.
 
-Its defining constraint is **one Workstream, one Worktree, one Workstream-level writer at a time**. GitHub is the shared memory and local Git remains authoritative for execution state. Review swarms are the bounded exception: one composer keeps the writer claim while delegated reviewers receive read-only leases with separate child-Issue write surfaces.
+Its defining constraint is **one Workstream, one Worktree, one Workstream-level writer at a time**. GitHub is the shared memory and local Git remains authoritative for execution state. Review swarms are the bounded exception: one composer keeps the writer claim while delegated reviewers receive read-only leases with separate child-Issue write surfaces, then Review Synthesizer takes the writer claim after every required child completes.
 
 ## When to reach for it
 
@@ -38,7 +38,7 @@ A claim is a cooperative lock recorded on the Workstream root. It pins the opera
 
 A Review Composer can keep the Workstream claim while several reviewers work in parallel. Each lease fixes one composer Issue, one child review Issue, one frozen range, one slice, one axis, and one allowed write surface. The worker may inspect code but may write only to that child. Missing hierarchy or lease data stops the review rather than widening it.
 
-The composer remains the only writer for the parent verdict, coverage matrix, Workstream transition, Project placement, and corrective or diagnosis ticket creation.
+Composer owns topology, coverage, prompts, leases, and launch. Review Synthesizer later owns the candidate and approved finding registers, human evaluation gate, final verdict, deferred ledger, Workstream transition, Project placement, and corrective, diagnosis, or verification ticket creation.
 
 ## Durable handoffs
 
@@ -57,4 +57,4 @@ Implementation, diagnosis, review, and integration end with a handoff comment on
 
 ## Where it fits
 
-This is a model-invoked infrastructure skill beneath the main engineering chain. [to-spec](https://aihero.dev/skills-to-spec), [to-tickets](https://aihero.dev/skills-to-tickets), [implement](https://aihero.dev/skills-implement), [review-composer](https://aihero.dev/skills-review-composer), [code-review](https://aihero.dev/skills-code-review), [diagnosing-bugs](https://aihero.dev/skills-diagnosing-bugs), [triage](https://aihero.dev/skills-triage), and [wayfinder](https://aihero.dev/skills-wayfinder) invoke it at their lifecycle boundaries. See [ask-matt](https://aihero.dev/skills-ask-matt) for the full map.
+This is a model-invoked infrastructure skill beneath the main engineering chain. [to-spec](https://aihero.dev/skills-to-spec), [to-tickets](https://aihero.dev/skills-to-tickets), [implement](https://aihero.dev/skills-implement), [review-composer](https://aihero.dev/skills-review-composer), [review-synthesizer](https://aihero.dev/skills-review-synthesizer), [code-review](https://aihero.dev/skills-code-review), [diagnosing-bugs](https://aihero.dev/skills-diagnosing-bugs), [triage](https://aihero.dev/skills-triage), and [wayfinder](https://aihero.dev/skills-wayfinder) invoke it at their lifecycle boundaries. See [ask-matt](https://aihero.dev/skills-ask-matt) for the full map.

@@ -97,7 +97,7 @@
     {
       "id": "review-composer",
       "displayName": "Review Composer",
-      "description": "Compose and synthesize bounded review swarms for frozen cumulative change ranges.",
+      "description": "Compose bounded review swarms and launch exact delegated reviewer prompts.",
       "shared": [
         "shared/web-operator.md",
         "shared/project-context.md",
@@ -111,6 +111,25 @@
         "skills/engineering/workstream-tracking/SKILL.md"
       ],
       "output": "generated/review-composer.instructions.md"
+    },
+    {
+      "id": "review-synthesizer",
+      "displayName": "Review Synthesizer",
+      "description": "Turn completed review children into a human-approved finding register, follow-up work, and exact handoff.",
+      "shared": [
+        "shared/web-operator.md",
+        "shared/project-context.md",
+        "shared/workstream-kernel.md",
+        "shared/handoff-contract.md"
+      ],
+      "role": "roles/review-synthesizer.md",
+      "canonicalSkills": [
+        "skills/engineering/review-synthesizer/SKILL.md",
+        "skills/engineering/review-composer/SKILL.md",
+        "skills/engineering/code-review/SKILL.md",
+        "skills/engineering/workstream-tracking/SKILL.md"
+      ],
+      "output": "generated/review-synthesizer.instructions.md"
     },
     {
       "id": "triage-operator",

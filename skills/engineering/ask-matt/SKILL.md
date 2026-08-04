@@ -23,7 +23,7 @@ The route most work travels. You have an idea and want it built.
    - **Yes** → **`/to-spec`** (turn the thread into a spec), then **`/to-tickets`** to split it into tracer-bullet tickets, each declaring its **blocking edges**. On a local tracker that's one file per ticket under `.scratch/<feature>/issues/`, worked blockers-first by hand; on a real tracker the edges become native blocking links, so any ticket whose blockers are done can be grabbed — kick off **`/implement`** per ticket, **clearing context between each one**. When Workstreams are enabled, the whole chain stays attached to one root issue, one persistent local worktree, and one branch.
    - **No** → **`/implement`** right here, in the same context window.
 
-   Either way, **`/implement`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — verifies and commits the bounded change, then hands off a frozen range. A focused single-ticket or single-domain range goes to **`/code-review`**. A cumulative range spanning several tickets, several domains, a large diff, or cross-cutting seams goes to **`/review-composer`**, which creates bounded child reviews and later synthesizes them. The same operator may continue into focused review only after the handoff; swarm review transfers to ChatGPT Web. `/workstream-tracking` runs underneath all three: it claims the shared worktree, pins the range, registers the active artifacts, and writes durable handoffs between operators. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec.
+   Either way, **`/implement`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — verifies and commits the bounded change, then hands off a frozen range. A focused single-ticket or single-domain range goes to **`/code-review`**. A cumulative range spanning several tickets, several domains, a large diff, or cross-cutting seams goes to **`/review-composer`**, which creates bounded child reviews and launches delegated reviewers. When every required child is complete, **`/review-synthesizer`** evaluates the evidence with a human approval gate, creates coherent follow-up work, and hands off the execution frontier. The same operator may continue into focused review only after the handoff; swarm review transfers to ChatGPT Web. `/workstream-tracking` runs underneath all four: it claims the shared worktree, pins the range, registers the active artifacts, and writes durable handoffs between operators. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec.
 
 ### Context hygiene
 
@@ -41,16 +41,17 @@ The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-diction
 - GitHub Projects v2 operational state;
 - cooperative claims and durable handoffs between ChatGPT Web, Codex, and humans.
 
-`grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `review-composer`, `code-review`, `diagnosing-bugs`, `triage`, and `wayfinder` invoke it at their own lifecycle boundaries. Model-invoked writer disciplines such as `prototype`, `tdd`, `domain-modeling`, `research`, and `resolving-merge-conflicts` inherit the caller's claim or claim before standalone writes. Worktrees, branches, commits, and chat sessions never become tracking Issues.
+`grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `review-composer`, `review-synthesizer`, `code-review`, `diagnosing-bugs`, `triage`, and `wayfinder` invoke it at their own lifecycle boundaries. Model-invoked writer disciplines such as `prototype`, `tdd`, `domain-modeling`, `research`, and `resolving-merge-conflicts` inherit the caller's claim or claim before standalone writes. Worktrees, branches, commits, and chat sessions never become tracking Issues.
 
 ## Review routing
 
 - **Focused PR, focused single-ticket review, or one narrow domain slice** → `/code-review` in focused mode.
 - **Large cumulative review, multi-ticket correction range, multi-domain review, or cross-cutting implementation batch** → `/review-composer`.
 - **A child Issue under a Review Composer** → `/code-review` in delegated worker mode, bounded by the child lease.
+- **A Review Composer whose required children are complete** → `/review-synthesizer`.
 - **A defect whose cause is still unclear** → `/diagnosing-bugs`, not a speculative corrective ticket.
 
-The composer owns the parent review artifact, coverage matrix, synthesis, final verdict, Workstream transition, and corrective or diagnosis ticket creation. Delegated reviewers write only to their assigned child Issues.
+The composer owns topology, prompts, leases, coverage, and launch. Delegated reviewers write only to assigned child Issues. The synthesizer owns stable finding IDs, the human evaluation gate, final verdict, deferred ledger, Workstream transition, and corrective, diagnosis, or verification ticket creation.
 
 ## On-ramps
 

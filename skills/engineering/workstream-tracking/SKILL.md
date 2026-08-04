@@ -197,10 +197,10 @@ Review is read-only against local files by default. Planning, specification, tic
 
 A delegated review lease permits one parallel reviewer to contribute to a Review Composer without replacing the Workstream-level claim.
 
-The composer must retain:
+The active swarm owner must retain:
 
-- operator: the configured composer operator, normally `ChatGPT Web`;
-- activity: `review-composition` or `review-synthesis`;
+- operator: the configured ChatGPT Web operator;
+- activity: `review-composition`, `delegated-review`, or `review-synthesis`;
 - active artifact: the composer parent Issue;
 - fixed point and reviewed HEAD: the frozen review range.
 
@@ -217,13 +217,19 @@ Each delegated lease must name:
 
 The allowed write surface is exactly one child review Issue. A worker may inspect code and Git history but may not modify local files, the composer parent, the Workstream root, Project state, sibling children, corrective Issues, diagnosis Issues, or the final verdict.
 
-Parallel delegated review is permitted only because code access is read-only and GitHub write surfaces do not overlap. The composer is the sole writer for:
+Parallel delegated review is permitted only because code access is read-only and GitHub write surfaces do not overlap. Review Composer is the sole writer during composition for:
 
 - the parent composer Issue;
 - the coverage matrix;
+- review child prompts and leases;
+- the launch list and synthesis-ready handoff.
+
+Review Synthesizer becomes the sole writer during `review-synthesis` for:
+
+- candidate and approved finding registers;
+- the final synthesis, verdict, and deferred ledger;
 - Workstream transitions and handoffs;
-- the final synthesis and verdict;
-- corrective or diagnosis Issue creation;
+- corrective, diagnosis, or verification Issue creation;
 - Project placement of follow-up work.
 
 To claim `delegated-review`:
@@ -292,7 +298,7 @@ Post the handoff on the active Issue or Pull Request, not only on the root. Incl
 
 Then update the root managed block to point at that handoff and transfer or release the claim. Project state follows the next action: active while another phase remains, done only when the artifact is complete.
 
-A delegated reviewer is different: it posts completion only on its assigned child Issue and closes that child. It does not post a Workstream handoff or update the root. The composer performs the review-synthesis handoff after every child is complete.
+A delegated reviewer is different: it posts completion only on its assigned child Issue and closes that child. It does not post a Workstream handoff or update the root. Review Synthesizer performs the review-synthesis handoff after every required child is complete.
 
 Do not paste full terminal logs or private reasoning. Record facts another operator needs to continue.
 
@@ -343,7 +349,7 @@ An artifact is complete only when its acceptance conditions are met, required ve
 
 A delegated review child is complete only when its required report, no-finding areas, verification limits, exclusions, and completion status are posted. Closing a child does not complete the composer.
 
-A Review Composer parent is complete only when every child is complete, the coverage matrix is complete, the final synthesis and verdict are posted, and follow-up routing is recorded. Corrective and diagnosis Issues created by synthesis remain siblings under the Workstream root; they do not need to close before the composer artifact itself can close.
+A Review Composer parent is complete only when every child is complete, the coverage matrix is complete, human evaluation is approved, the final finding register, verdict, and deferred ledger are posted, approved follow-up artifacts exist, and Review Synthesizer records the next handoff. Corrective, diagnosis, and verification Issues created by synthesis remain siblings under the Workstream root; they do not need to close before the composer artifact itself can close.
 
 A Workstream is complete only when:
 

@@ -29,7 +29,7 @@ Look at the current repository and connected tools. Read whatever exists; do not
 - `docs/agents/issue-tracker.md`, `docs/agents/workstreams.md`, `docs/agents/triage-labels.md`, and `docs/agents/domain.md`
 - `CONTEXT.md`, `CONTEXT-MAP.md`, and ADR directories
 - `.scratch/` — evidence of a local-markdown issue tracker convention
-- whether the `triage`, `workstream-tracking`, and `review-composer` skills are installed
+- whether the `triage`, `workstream-tracking`, `review-composer`, and `review-synthesizer` skills are installed
 - monorepo signals such as `pnpm-workspace.yaml`, a `workspaces` field, or multiple populated packages
 
 If GitHub Projects v2 is already in use, list the available Projects, fields, and a small sample of items before recommending one. Do not mutate anything during exploration.
@@ -76,19 +76,19 @@ Collect or confirm:
 6. Worktree path and branch naming patterns.
 7. Allowed operator names, normally `ChatGPT Web`, `Codex`, `Human`, and `Unassigned`.
 8. An execution profile for every operator: default activities, local workspace transport, GitHub transport, forbidden transports, and missing-transport behavior.
-9. Default flow ownership: `/implement` belongs to Codex; `/code-review` and `/review-composer` belong to ChatGPT Web unless explicitly overridden.
+9. Default flow ownership: `/implement` belongs to Codex; `/code-review`, `/review-composer`, and `/review-synthesizer` belong to ChatGPT Web unless explicitly overridden.
 10. Review hierarchy and delegated lease policy:
     - Review Composer parent as a native direct child of the Workstream root;
     - review workers as native direct children of the composer;
     - corrective and diagnosis Issues as direct children of the Workstream root;
-    - composer-only synthesis, Workstream transition, and follow-up ticket creation;
+    - Review Synthesizer-only synthesis, Workstream transition, and follow-up ticket creation after human approval;
     - review children outside the Project by default;
     - native sub-issue capability gaps are stop conditions.
 11. Label registry and whether optional `area:*` labels already exist.
 
 Write the result to `docs/agents/workstreams.md`, using [workstreams.md](./workstreams.md) as the seed. If disabled, still write a short file saying Workstreams are disabled so model-invoked skills do not guess.
 
-The generated Workstream document must make the review fork explicit: focused single-ticket or single-domain review uses `/code-review`; cumulative multi-ticket, multi-domain, large, or cross-cutting review uses `/review-composer`; composer children use `/code-review` only in delegated worker mode.
+The generated Workstream document must make the review fork explicit: focused single-ticket or single-domain review uses `/code-review`; cumulative multi-ticket, multi-domain, large, or cross-cutting review uses `/review-composer`; composer children use `/code-review` only in delegated worker mode; completed composer children move to `/review-synthesizer` before follow-up work exists.
 
 #### Section C — Triage label vocabulary
 

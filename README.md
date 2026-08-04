@@ -84,7 +84,7 @@ The first command previews changes. The second moves existing promoted-skill dir
 
 ### ChatGPT Web GPT roles
 
-This fork also packages seven version-controlled ChatGPT Web roles: Matt, Grill With Docs, Engineering Planner, Wayfinder, Code Reviewer, Review Composer, and Triage Operator. Their complete GPT Builder instructions, shared policies, Project routing template, generator, and smoke tests live in [`gpts/`](./gpts/README.md).
+This fork also packages eight version-controlled ChatGPT Web roles: Matt, Grill With Docs, Engineering Planner, Wayfinder, Code Reviewer, Review Composer, Review Synthesizer, and Triage Operator. Their complete GPT Builder instructions, shared policies, Project routing template, generator, and smoke tests live in [`gpts/`](./gpts/README.md).
 
 Run `npm run generate:gpts` after changing a role or shared policy, and `npm run check:gpts` to detect generated-instruction drift. Creating the remote GPTs remains a manual GPT Builder step.
 
@@ -228,7 +228,8 @@ Skills I use daily for code work.
 - **[tdd](./skills/engineering/tdd/SKILL.md)** — Test-driven development with a red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.
 - **[domain-modeling](./skills/engineering/domain-modeling/SKILL.md)** — Actively build and sharpen a project's domain model — challenge terms against the glossary, stress-test with edge-case scenarios, and update `CONTEXT.md` and ADRs inline.
 - **[codebase-design](./skills/engineering/codebase-design/SKILL.md)** — Shared discipline and vocabulary for designing deep modules: a lot of behaviour behind a small interface, placed at a clean seam, testable through that interface.
-- **[review-composer](./skills/engineering/review-composer/SKILL.md)** — Compose and synthesize a bounded review swarm for a frozen multi-ticket, multi-domain, or cross-cutting implementation range.
+- **[review-composer](./skills/engineering/review-composer/SKILL.md)** — Compose a bounded review swarm for a frozen multi-ticket, multi-domain, or cross-cutting range, then launch exact delegated reviewer prompts.
+- **[review-synthesizer](./skills/engineering/review-synthesizer/SKILL.md)** — Turn completed review children into a human-approved finding register, coherent follow-up work, a deferred ledger, verdict, and exact execution handoff.
 - **[code-review](./skills/engineering/code-review/SKILL.md)** — Review a frozen diff in focused mode, or contribute one leased slice and axis as a delegated Review Composer worker.
 - **[resolving-merge-conflicts](./skills/engineering/resolving-merge-conflicts/SKILL.md)** — Work through an in-progress git merge or rebase conflict hunk by hunk, resolving by intent traced to each side's primary source, then finish the operation — never `--abort`.
 

@@ -14,7 +14,7 @@ npx skills update code-review
 
 `code-review` reviews a frozen diff in one of two modes. **Focused mode** owns one small Pull Request, one implementation ticket, or one narrow domain slice. **Delegated worker mode** contributes one bounded slice and axis to a Review Composer swarm.
 
-It never lets a delegated reviewer become a second composer. A delegated worker can inspect only its assigned range and can write only to its child Issue; the parent verdict, Workstream transition, and follow-up tickets stay with [review-composer](https://aihero.dev/skills-review-composer).
+It never lets a delegated reviewer become a second composer or synthesizer. A delegated worker can inspect only its assigned range and can write only to its child Issue; the final finding register, verdict, Workstream transition, and follow-up tickets stay with [review-synthesizer](https://aihero.dev/skills-review-synthesizer).
 
 ## When to reach for it
 
@@ -63,7 +63,7 @@ grill-with-docs → to-spec → to-tickets → implement → code-review
 Delegated review sits inside the swarm path:
 
 ```txt
-implement → review-composer → delegated code-review → review-composer synthesis
+implement → review-composer → delegated code-review → review-synthesizer
 ```
 
-Its closest neighbours are [implement](https://aihero.dev/skills-implement), which freezes the range, [review-composer](https://aihero.dev/skills-review-composer), which owns swarm topology and synthesis, and [workstream-tracking](https://aihero.dev/skills-workstream-tracking), which validates the claim or delegated lease. [ask-matt](https://aihero.dev/skills-ask-matt) routes between them.
+Its closest neighbours are [implement](https://aihero.dev/skills-implement), which freezes the range, [review-composer](https://aihero.dev/skills-review-composer), which owns swarm topology and launch, [review-synthesizer](https://aihero.dev/skills-review-synthesizer), which owns final finding evaluation and follow-up work, and [workstream-tracking](https://aihero.dev/skills-workstream-tracking), which validates the claim or delegated lease. [ask-matt](https://aihero.dev/skills-ask-matt) routes between them.

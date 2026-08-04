@@ -150,7 +150,7 @@ Confirm:
 
 - the composer parent is a native direct child of the Workstream root;
 - this child is a native direct child of the composer;
-- the composer holds the Workstream-level `review-composition` or `review-synthesis` claim;
+- the composer holds the Workstream-level `review-composition` or `delegated-review` claim;
 - the lease names this exact composer and child;
 - the lease range matches the parent;
 - the assigned slice and axis are unambiguous;
@@ -228,7 +228,7 @@ Do not omit no-finding areas or exclusions. They are coverage evidence for the c
 
 Before completion, confirm the reviewed commit and range still match the lease. Post the final report and close the child Issue as completed.
 
-Do not post a Workstream handoff, alter the composer parent, create follow-up tickets, or transition the Project. The composer is the only writer for synthesis, parent verdict, Workstream transition, and corrective or diagnosis issue creation.
+Do not post a Workstream handoff, alter the composer parent, create follow-up tickets, or transition the Project. Review Synthesizer is the only writer for synthesis, final parent verdict, Workstream transition, and corrective, diagnosis, or verification Issue creation after every required child is complete.
 
 ## Why the modes stay separate
 

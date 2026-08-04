@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Synthesizer"
+  short_description: "Turn completed reviews into approved corrective work"

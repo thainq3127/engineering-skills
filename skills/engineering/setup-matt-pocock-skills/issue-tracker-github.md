@@ -52,15 +52,15 @@ Used by `/workstream-tracking` and every flow that invokes it.
 - **Claim and handoff**: update only the root's managed state block and post the durable handoff on the active Issue or Pull Request.
 - **Capability gaps**: if the current operator's configured GitHub transport cannot create a custom Project field, saved view, dependency edge, or delete a Project, report that limitation. Do not switch transports.
 
-## Review Composer operations
+## Review swarm operations
 
-Used by `/review-composer` and delegated `/code-review` workers.
+Used by `/review-composer`, delegated `/code-review` workers, and `/review-synthesizer`.
 
 - **Composer parent**: create or reuse one Issue marked `<!-- review-composer:v1 -->`, label it `kind:review` plus `ws:<slug>`, and attach it as a native direct sub-issue of the Workstream root.
 - **Review child**: create one Issue per bounded slice and axis, label it `kind:review` plus `ws:<slug>`, and attach it as a native direct sub-issue of the composer parent.
 - **Delegated lease**: store the composer Issue, child Issue, frozen range, slice, axis, and allowed write surface in the child body or a managed comment before a worker starts.
 - **Project placement**: add the composer parent while active. Leave review children outside the Project unless blocked or requiring human attention.
-- **Synthesis**: only the composer updates the parent verdict, transitions the Workstream, and creates follow-up Issues.
+- **Synthesis**: after every required child completes, only Review Synthesizer may update the final parent verdict, transition the Workstream, or create follow-up Issues, and only after explicit human approval of the evaluated finding set.
 - **Corrective and diagnosis routing**: attach follow-up Issues as native direct sub-issues of the Workstream root, never as children of the composer.
 - **Native hierarchy required**: a body link is not an acceptable fallback. If the configured transport cannot read or mutate native sub-issues, report the capability gap and stop the compose or delegated-review operation.
 

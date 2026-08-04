@@ -157,6 +157,13 @@ if (!reviewComposer) {
   errors.push("review-composer: must remain model-invoked so implementation and routing flows can hand off to it");
 }
 
+const reviewSynthesizer = skills.find((skill) => skill.name === "review-synthesizer");
+if (!reviewSynthesizer) {
+  errors.push("review-synthesizer: promoted skill is missing");
+} else if (reviewSynthesizer.userInvoked) {
+  errors.push("review-synthesizer: must remain model-invoked so completed review swarms can hand off to it");
+}
+
 for (const name of [
   "ask-matt",
   "grill-with-docs",
@@ -164,6 +171,7 @@ for (const name of [
   "to-tickets",
   "implement",
   "review-composer",
+  "review-synthesizer",
   "code-review",
   "diagnosing-bugs",
   "triage",
@@ -239,15 +247,27 @@ requirePatterns("code-review", codeReviewSkill, [
 
 const reviewComposerSkill = read("skills/engineering/review-composer/SKILL.md");
 requirePatterns("review-composer", reviewComposerSkill, [
-  ["compose phase", /Phase 1: Compose/i],
-  ["synthesize phase", /Phase 2: Synthesize/i],
+  ["compose phase", /## Compose/i],
   ["coverage matrix", /coverage matrix/i],
   ["ChatGPT Web operator profile", /ChatGPT Web-owned flow by default/i],
   ["native Workstream parent hierarchy", /composer parent.*native direct sub-issue of the Workstream root/is],
-  ["native child hierarchy", /child.*native direct sub-issue of the composer parent/is],
-  ["root-level corrective routing", /corrective or diagnosis Issue.*native direct sub-issue of the Workstream root/is],
-  ["composer-only synthesis writes", /Only the composer may create corrective or diagnosis Issues/i],
+  ["native child hierarchy", /child.*native direct child of the composer parent/is],
+  ["synthesizer handoff", /name `?\/review-synthesizer`? as the next agent/i],
+  ["compose-only boundary", /does not synthesize findings, issue a verdict, create corrective work/i],
   ["no silent native hierarchy fallback", /Body links are not a substitute for native hierarchy/i],
+]);
+
+const reviewSynthesizerSkill = read("skills/engineering/review-synthesizer/SKILL.md");
+requirePatterns("review-synthesizer", reviewSynthesizerSkill, [
+  ["ChatGPT Web operator profile", /ChatGPT Web-owned flow by default/i],
+  ["explicit state machine", /COLLECT[\s\S]*AWAIT_HUMAN_EVALUATION[\s\S]*MATERIALIZE[\s\S]*HANDOFF/i],
+  ["stable finding ids", /F-001/i],
+  ["human approval gate", /Never skip the human evaluation gate/i],
+  ["approved disposition set", /fix-now[\s\S]*defer[\s\S]*diagnose[\s\S]*verify[\s\S]*reject/i],
+  ["correction boundary grouping", /Group `fix-now` findings by coherent correction boundary/i],
+  ["deferred ledger", /Deferred and resolved-out findings ledger/i],
+  ["root-level follow-up hierarchy", /native direct child of the Workstream root/i],
+  ["exact Codex implementer handoff", /route to the configured Codex Implementer/i],
 ]);
 
 const workstreamTrackingSkill = read("skills/engineering/workstream-tracking/SKILL.md");
@@ -257,7 +277,8 @@ requirePatterns("workstream-tracking", workstreamTrackingSkill, [
   ["review-synthesis activity", /review-synthesis/],
   ["delegated review lease", /Delegated review leases/i],
   ["non-overlapping write surfaces", /non-overlapping child-Issue write surfaces/i],
-  ["composer-only Workstream writes", /composer is the sole writer/i],
+  ["composer composition authority", /Review Composer is the sole writer during composition/i],
+  ["synthesizer synthesis authority", /Review Synthesizer becomes the sole writer during `review-synthesis`/i],
   ["corrective issues outside composer", /corrective and diagnosis Issues are native direct sub-issues of the Workstream root/i],
 ]);
 
@@ -271,6 +292,7 @@ const askMattSkill = read("skills/engineering/ask-matt/SKILL.md");
 requirePatterns("ask-matt", askMattSkill, [
   ["large cumulative review routing", /Large cumulative review.*`\/review-composer`/i],
   ["multi-ticket correction routing", /multi-ticket correction range.*`\/review-composer`/i],
+  ["completed swarm routing", /required children are complete.*`\/review-synthesizer`/i],
   ["focused review routing", /Focused PR.*`\/code-review`/i],
   ["unknown-cause bug routing", /cause is still unclear.*`\/diagnosing-bugs`/i],
 ]);
@@ -299,6 +321,7 @@ const expectedGptIds = [
   "wayfinder",
   "code-reviewer",
   "review-composer",
+  "review-synthesizer",
   "triage-operator",
 ];
 
@@ -397,10 +420,21 @@ requirePatterns("GPT code-reviewer", generatedGpt("code-reviewer"), [
 ]);
 
 requirePatterns("GPT review-composer", generatedGpt("review-composer"), [
-  ["compose phase", /\*\*Compose\*\*/i],
-  ["synthesize phase", /\*\*Synthesize\*\*/i],
+  ["compose workflow", /### Compose/i],
   ["coverage matrix", /coverage matrix/i],
   ["native hierarchy", /native direct child of the Workstream root/i],
+  ["Review Synthesizer handoff", /name \*\*Review Synthesizer\*\* as the next agent/i],
+  ["compose-only boundary", /Never synthesize findings, issue a verdict, create corrective work/i],
+  ["no production code mutation", /Never modify production code/i],
+]);
+
+requirePatterns("GPT review-synthesizer", generatedGpt("review-synthesizer"), [
+  ["state machine", /COLLECT -> PREPARE_EVALUATION -> AWAIT_HUMAN_EVALUATION -> MATERIALIZE -> HANDOFF -> CLOSE/i],
+  ["stable finding IDs", /F-001/i],
+  ["human approval gate", /Do not materialize until the user explicitly approves/i],
+  ["deferred ledger", /Deferred and resolved-out findings ledger/i],
+  ["correction boundary grouping", /Group `fix-now` findings by coherent correction boundary/i],
+  ["Codex Implementer handoff", /Route to the configured Codex Implementer/i],
   ["no production code mutation", /Never modify production code/i],
 ]);
 
@@ -418,6 +452,7 @@ requirePatterns("GPT Project template", projectTemplate, [
   ["Workstream routing", /workstream_root:/i],
   ["Grill With Docs routing", /idea_sharpening: "@Grill With Docs"/i],
   ["Planner routing", /specification_and_ticketing: "@Engineering Planner"/i],
+  ["Review Synthesizer routing", /completed_review_synthesis: "@Review Synthesizer"/i],
   ["dynamic-state prohibition", /Do not store current HEAD, fixed point, active artifact/i],
   ["Codex execution route", /implementation_diagnosis_correction_integration: "Codex"/i],
 ]);

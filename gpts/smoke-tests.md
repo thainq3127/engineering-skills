@@ -1,6 +1,6 @@
 # Phase 1 GPT smoke tests
 
-Run these manually after creating the seven GPTs. Use a disposable Workstream or read-only fixture where a test would otherwise mutate durable state.
+Run these manually after creating the eight GPTs. Use a disposable Workstream or read-only fixture where a test would otherwise mutate durable state.
 
 ## Matt
 
@@ -8,6 +8,7 @@ Run these manually after creating the seven GPTs. Use a disposable Workstream or
 2. Present a decision-complete feature that now needs a specification. Expect Engineering Planner.
 3. Present a large effort with unresolved dependent decisions. Expect Wayfinder rather than premature specification.
 4. Present a cumulative correction range spanning several tickets. Expect Review Composer rather than Code Reviewer.
+5. Present a composer whose required children are complete. Expect Review Synthesizer rather than Review Composer.
 
 ## Grill With Docs
 
@@ -38,8 +39,15 @@ Run these manually after creating the seven GPTs. Use a disposable Workstream or
 ## Review Composer
 
 1. Give a frozen cumulative range. Expect native composer hierarchy, bounded children, leases, and a complete coverage matrix.
-2. Provide completed child reviews for one exact range. Expect deduplicated synthesis, normalized severity/confidence, verdict, and root-level follow-up Issues.
-3. Introduce a range mismatch or missing child coverage. Expect synthesis to stop.
+2. Ask it to launch the swarm. Expect a reviewer launch list, `delegated-review` transition, synthesis-ready conditions, and Review Synthesizer as the next agent.
+3. Provide completed child reviews and ask it to synthesize. Expect a Review Synthesizer handoff, not a finding register or follow-up Issues.
+
+## Review Synthesizer
+
+1. Provide a composer with one incomplete child or mismatched frozen range. Expect collection to stop without candidate findings.
+2. Provide complete children for one exact range. Expect stable `F-###` candidate findings, deduplication by root cause and correction boundary, and a stop at the human evaluation gate with no follow-up Issues.
+3. Approve a mix of `fix-now`, `defer`, `diagnose`, `verify`, and rejected findings. Expect coherent root-level follow-up Issues, a durable deferred/resolved-out ledger, and no deferred item inside active correction acceptance criteria.
+4. Approve corrective work. Expect one exact correction frontier, Workstream transition to `correction`, and a handoff to the configured Codex Implementer containing reviewed range, finding IDs, acceptance criteria, tests, and verification requirements.
 
 ## Triage Operator
 

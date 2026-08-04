@@ -44,7 +44,7 @@ Allowed operator names:
 
 Only one Workstream-level writer may control a Workstream at a time. Claims are cooperative; an agent must not steal another operator's claim without an explicit handoff or human direction.
 
-Parallel review is the bounded exception. One Review Composer retains the Workstream-level claim while delegated reviewers receive read-only leases scoped to different child review Issues. They do not become additional Workstream writers.
+Parallel review is the bounded exception. One Review Composer retains the Workstream-level claim while delegated reviewers receive read-only leases scoped to different child review Issues. They do not become additional Workstream writers. After every required child completes, Review Synthesizer takes the `review-synthesis` claim.
 
 ## Operator execution profiles
 
@@ -56,6 +56,7 @@ Parallel review is the bounded exception. One Review Composer retains the Workst
 - Default owner of `/implement`: no
 - Default owner of `/code-review`: yes
 - Default owner of `/review-composer`: yes
+- Default owner of `/review-synthesizer`: yes
 - Forbidden transports:
   - native Codex filesystem or shell as a substitute
   - `gh`
@@ -70,6 +71,7 @@ Parallel review is the bounded exception. One Review Composer retains the Workst
 - Default owner of `/implement`: yes
 - Default owner of `/code-review`: no
 - Default owner of `/review-composer`: no
+- Default owner of `/review-synthesizer`: no
 - Forbidden transports:
   - `@devspace`
   - `@github` MCP
@@ -83,6 +85,7 @@ Parallel review is the bounded exception. One Review Composer retains the Workst
 - Default owner of `/implement`: no
 - Default owner of `/code-review`: no
 - Default owner of `/review-composer`: no
+- Default owner of `/review-synthesizer`: no
 - Forbidden transports: `<none or explicit list>`
 
 ### Missing transport behavior
@@ -133,7 +136,7 @@ Workstream root
 
 ## Delegated review leases
 
-The composer keeps the Workstream-level claim with activity `review-composition` or `review-synthesis` and active artifact set to the composer parent.
+The composer keeps the Workstream-level claim through `review-composition` and `delegated-review`, with the composer parent as active artifact. Review Synthesizer claims `review-synthesis` on the same parent after every required child completes.
 
 Each reviewer lease is bounded by:
 
@@ -151,9 +154,10 @@ The reviewer may inspect code but may write only to its assigned child Issue. It
 - Focused Pull Request, single-ticket review, or one narrow domain slice: use `/code-review` in focused mode.
 - Large cumulative review, multi-ticket correction range, multi-domain batch, or cross-cutting diff: use `/review-composer`.
 - Child Issue under a Review Composer: use `/code-review` in delegated worker mode with the child lease.
+- Review Composer with every required child complete: use `/review-synthesizer`.
 - Unknown-cause defect: use `/diagnosing-bugs` before defining corrective work.
 
-Only the composer synthesizes a swarm, updates the parent verdict, transitions the Workstream, and creates corrective or diagnosis Issues.
+Only Review Synthesizer evaluates a completed swarm, updates the final parent verdict, transitions the Workstream, and creates corrective, diagnosis, or verification Issues. It must stop for explicit human approval before materializing candidate findings.
 
 ## Project membership
 

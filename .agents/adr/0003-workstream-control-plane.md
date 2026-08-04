@@ -21,7 +21,7 @@ GitHub Issues and Pull Requests are the shared memory. GitHub Projects v2 is the
 
 The lifecycle operations are `resolve`, `ensure`, `claim`, `register`, `handoff`, `transition`, `reconcile`, and `complete`. They remain operations within one skill rather than separate skills.
 
-Large cumulative reviews use a dedicated `review-composer` flow instead of one full-batch `code-review`. The composer freezes the range, creates one parent review artifact under the Workstream root, partitions bounded child reviews by slice and axis, proves coverage, and later synthesizes the completed children. Focused review remains available for one small PR, one implementation ticket, or one narrow domain slice.
+Large cumulative reviews use a dedicated `review-composer` flow instead of one full-batch `code-review`. The composer freezes the range, creates one parent review artifact under the Workstream root, partitions bounded child reviews by slice and axis, proves coverage, and launches the reviewers. `review-synthesizer` later evaluates completed children behind a human approval gate, materializes coherent follow-up work, and hands off the execution frontier. Focused review remains available for one small PR, one implementation ticket, or one narrow domain slice.
 
 The composer retains the Workstream-level writer claim. Parallel reviewers receive delegated read-only leases scoped to one composer child, one frozen range, one slice, one axis, and one allowed GitHub write surface. This permits parallel inspection without creating several competing Workstream writers.
 
@@ -33,7 +33,7 @@ Tool routing is part of the operator claim, not a repository-wide default.
 - Codex uses native filesystem, process execution, shell, and local Git for repository work, plus authenticated `gh` CLI for GitHub operations.
 - `/implement` is Codex-owned by default.
 - `/code-review` is ChatGPT Web-owned by default.
-- `/review-composer` is ChatGPT Web-owned by default.
+- `/review-composer` and `/review-synthesizer` are ChatGPT Web-owned by default.
 - A missing or unsupported required transport is a stop condition.
 - An operator never borrows another operator's transport and never falls back to the ChatGPT GitHub App or direct REST/GraphQL calls.
 

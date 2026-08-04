@@ -21,6 +21,7 @@ routing:
   uncertain_large_effort: "@Wayfinder"
   focused_review: "@Code Reviewer"
   cumulative_review: "@Review Composer"
+  completed_review_synthesis: "@Review Synthesizer"
   incoming_work: "@Triage Operator"
   implementation_diagnosis_correction_integration: "Codex"
 

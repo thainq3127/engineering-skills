@@ -1,6 +1,6 @@
 # ChatGPT Web GPT packages
 
-This directory packages seven Phase 1 engineering roles as version-controlled GPT instructions:
+This directory packages eight Phase 1 engineering roles as version-controlled GPT instructions:
 
 - Matt
 - Grill With Docs
@@ -8,6 +8,7 @@ This directory packages seven Phase 1 engineering roles as version-controlled GP
 - Wayfinder
 - Code Reviewer
 - Review Composer
+- Review Synthesizer
 - Triage Operator
 
 The packages make role activation explicit instead of depending on automatic skill discovery. Generated instructions contain the executable boundaries and workflow. Canonical skill files remain the maintenance sources recorded in `manifest.json`.
