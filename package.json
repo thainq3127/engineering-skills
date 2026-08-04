@@ -10,8 +10,6 @@
   "license": "MIT",
   "scripts": {
     "changeset": "changeset",
-    "check:gpts": "node scripts/generate-gpt-instructions.mjs --check",
-    "generate:gpts": "node scripts/generate-gpt-instructions.mjs",
     "validate": "node scripts/validate-skills.mjs",
     "version": "changeset version"
   },

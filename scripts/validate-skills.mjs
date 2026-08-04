@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { checkGeneratedInstructions } from "./generate-gpt-instructions.mjs";
 
 const root = process.cwd();
 const errors = [];
@@ -27,8 +26,7 @@ const parseJson = (relativePath) => {
 
 const plugin = parseJson(".claude-plugin/plugin.json");
 parseJson(".claude-plugin/marketplace.json");
-const packageJson = parseJson("package.json");
-const gptManifest = parseJson("gpts/manifest.json");
+parseJson("package.json");
 
 const promotedBuckets = ["engineering", "productivity"];
 const skills = [];
@@ -41,7 +39,7 @@ const textRoots = [
   "docs/productivity",
   ".agents",
   ".claude-plugin",
-  "gpts",
+  "chatgpt-project",
   "scripts",
 ];
 
@@ -310,160 +308,27 @@ if (!exists("docs/engineering/review-composer.md")) {
   errors.push("review-composer: missing docs/engineering/review-composer.md");
 }
 
-for (const error of checkGeneratedInstructions()) {
-  errors.push(`GPT packaging: ${error}`);
-}
-
-const expectedGptIds = [
-  "matt",
-  "grill-with-docs",
-  "engineering-planner",
-  "wayfinder",
-  "code-reviewer",
-  "review-composer",
-  "review-synthesizer",
-  "triage-operator",
-];
-
-if (packageJson) {
-  for (const [scriptName, expectedCommand] of [
-    ["generate:gpts", "node scripts/generate-gpt-instructions.mjs"],
-    ["check:gpts", "node scripts/generate-gpt-instructions.mjs --check"],
-  ]) {
-    if (packageJson.scripts?.[scriptName] !== expectedCommand) {
-      errors.push(`package.json: ${scriptName} must be ${expectedCommand}`);
-    }
-  }
-}
-
-if (gptManifest) {
-  const agents = Array.isArray(gptManifest.agents) ? gptManifest.agents : [];
-  const ids = agents.map((agent) => agent.id);
-  for (const id of expectedGptIds) {
-    if (!ids.includes(id)) errors.push(`gpts/manifest.json: missing Phase 1 GPT ${id}`);
-  }
-  for (const id of ids) {
-    if (!expectedGptIds.includes(id)) errors.push(`gpts/manifest.json: unexpected Phase 1 GPT ${id}`);
-  }
-  if (new Set(ids).size !== ids.length) {
-    errors.push("gpts/manifest.json: duplicate GPT ids");
-  }
-
-  for (const agent of agents) {
-    const outputPath = path.join("gpts", agent.output ?? "");
-    if (!exists(outputPath)) continue;
-    const generated = read(outputPath);
-    if (Buffer.byteLength(generated, "utf8") > 8000) {
-      errors.push(`GPT ${agent.id}: generated instructions exceed the 8000-byte portability budget`);
-    }
-    requirePatterns(`GPT ${agent.id}`, generated, [
-      ["explicit @devspace transport", /Use `@devspace` for all local workspace operations/i],
-      ["explicit @github transport", /Use connected `@github` for all GitHub reads and mutations/i],
-      ["forbidden ChatGPT GitHub App fallback", /ChatGPT GitHub App/i],
-      ["no transport fallback", /Do not fall back/i],
-      ["runtime skill loading independence", /Do not depend on automatic runtime skill loading/i],
-      ["dynamic state resolution", /Project instructions are routing metadata, not execution truth/i],
-      ["routing envelope", /Routing and handoff contract/i],
-    ]);
-
-    for (const skillPath of agent.canonicalSkills ?? []) {
-      if (!exists(skillPath)) {
-        errors.push(`GPT ${agent.id}: canonical skill does not exist: ${skillPath}`);
-      }
-    }
-  }
-}
-
-const generatedGpt = (id) => {
-  const entry = gptManifest?.agents?.find((agent) => agent.id === id);
-  return entry && exists(path.join("gpts", entry.output))
-    ? read(path.join("gpts", entry.output))
-    : "";
-};
-
-requirePatterns("GPT matt", generatedGpt("matt"), [
-  ["routing-only boundary", /front door.*produce a routing envelope, and stop/is],
-  ["read-only boundary", /Matt is read-only/i],
-  ["Codex execution ownership", /Implementation, diagnosis, correction, and integration remain Codex-owned/i],
-  ["Grill With Docs routing", /goes to \*\*Grill With Docs\*\*/i],
-]);
-
-requirePatterns("GPT grill-with-docs", generatedGpt("grill-with-docs"), [
-  ["one-question interview", /Ask exactly one substantive question at a time/i],
-  ["domain glossary capture", /update `CONTEXT\.md` only for durable domain terminology/i],
-  ["ADR threshold", /hard to reverse, surprising without context, and the result of a real trade-off/i],
-  ["Planner handoff", /goes to \*\*Engineering Planner\*\*/i],
-  ["no specification publishing", /may not publish the final specification/i],
-]);
-
-requirePatterns("GPT engineering-planner", generatedGpt("engineering-planner"), [
-  ["specify/ticket modes", /Specify.*Ticket/is],
-  ["ticket approval checkpoint", /Publish only after approval/i],
-  ["no implementation boundary", /may not implement production code/i],
-  ["Grill With Docs escalation", /Route to \*\*Grill With Docs\*\*/i],
-  ["Wayfinder escalation", /Route to \*\*Wayfinder\*\*/i],
-]);
-
-requirePatterns("GPT wayfinder", generatedGpt("wayfinder"), [
-  ["one decision ticket per session", /Never resolve more than one non-research decision ticket in a session/i],
-  ["map as Workstream root", /canonical map.*Workstream root/is],
-  ["handoff to planner", /hand off the map to \*\*Engineering Planner\*\*/i],
-  ["no implementation deliverables", /produces decisions, not implementation deliverables/i],
-]);
-
-requirePatterns("GPT code-reviewer", generatedGpt("code-reviewer"), [
-  ["focused mode", /Focused mode/i],
-  ["delegated worker mode", /Delegated worker mode/i],
-  ["lease stop condition", /missing or inconsistent lease is a stop condition/i],
-  ["child-only write surface", /assigned child Issue only/i],
-  ["no code mutation", /without modifying code/i],
-]);
-
-requirePatterns("GPT review-composer", generatedGpt("review-composer"), [
-  ["compose workflow", /### Compose/i],
-  ["coverage matrix", /coverage matrix/i],
-  ["native hierarchy", /native direct child of the Workstream root/i],
-  ["Review Synthesizer handoff", /name \*\*Review Synthesizer\*\* as the next agent/i],
-  ["compose-only boundary", /Never synthesize findings, issue a verdict, create corrective work/i],
-  ["no production code mutation", /Never modify production code/i],
-]);
-
-requirePatterns("GPT review-synthesizer", generatedGpt("review-synthesizer"), [
-  ["state machine", /COLLECT -> PREPARE_EVALUATION -> AWAIT_HUMAN_EVALUATION -> MATERIALIZE -> HANDOFF -> CLOSE/i],
-  ["stable finding IDs", /F-001/i],
-  ["human approval gate", /Do not materialize until the user explicitly approves/i],
-  ["deferred ledger", /Deferred and resolved-out findings ledger/i],
-  ["correction boundary grouping", /Group `fix-now` findings by coherent correction boundary/i],
-  ["Codex Implementer handoff", /Route to the configured Codex Implementer/i],
-  ["no production code mutation", /Never modify production code/i],
-]);
-
-requirePatterns("GPT triage-operator", generatedGpt("triage-operator"), [
-  ["recommend before mutation", /Present the recommendation and evidence before mutation/i],
-  ["no implementation claim", /must not edit production code, claim implementation/i],
-  ["Codex diagnosis route", /configured Codex diagnosis flow/i],
-  ["agent brief outcome", /publish a durable agent brief/i],
-]);
-
-const projectTemplate = read("gpts/project/instructions.template.md");
-requirePatterns("GPT Project template", projectTemplate, [
-  ["repository routing", /repository: <owner\/repository>/i],
-  ["workspace routing", /workspace: <absolute-or-home-relative-workspace-path>/i],
-  ["Workstream routing", /workstream_root:/i],
-  ["Grill With Docs routing", /idea_sharpening: "@Grill With Docs"/i],
-  ["Planner routing", /specification_and_ticketing: "@Engineering Planner"/i],
-  ["Review Synthesizer routing", /completed_review_synthesis: "@Review Synthesizer"/i],
-  ["dynamic-state prohibition", /Do not store current HEAD, fixed point, active artifact/i],
-  ["Codex execution route", /implementation_diagnosis_correction_integration: "Codex"/i],
+const projectTemplate = read("chatgpt-project/instructions.template.md");
+requirePatterns("ChatGPT Project skill template", projectTemplate, [
+  ["repository identity", /repository: <owner\/repository>/i],
+  ["workspace identity", /workspace: <absolute-or-home-relative-project-workspace-path>/i],
+  ["skill root identity", /skill_root: <absolute-or-home-relative-installed-skills-root>/i],
+  ["required skill runtime", /required: true/i],
+  ["default Ask Matt router", /default_router: "\/ask-matt"/i],
+  ["direct skill-root semantics", /directory whose direct children are skill folders/i],
+  ["exact skill resolution", /<skill_root>\/<skill-name>\/SKILL\.md/i],
+  ["full skill read through devspace", /Read the complete resolved `SKILL\.md` through `@devspace`/i],
+  ["no execution from memory", /Do not execute from memory/i],
+  ["observable skill receipt", /Loaded skill: <exact SKILL\.md path>/i],
+  ["dynamic-state prohibition", /Do not store current HEAD.*active artifact/i],
 ]);
 
 for (const requiredPath of [
-  "gpts/README.md",
-  "gpts/smoke-tests.md",
-  "gpts/project/instructions.template.md",
-  "scripts/generate-gpt-instructions.mjs",
+  "chatgpt-project/README.md",
+  "chatgpt-project/smoke-tests.md",
+  "chatgpt-project/instructions.template.md",
 ]) {
-  if (!exists(requiredPath)) errors.push(`GPT packaging: missing ${requiredPath}`);
+  if (!exists(requiredPath)) errors.push(`ChatGPT Project runtime: missing ${requiredPath}`);
 }
 
 if (errors.length > 0) {
@@ -472,5 +337,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Validated ${skills.length} skills, promoted manifests, docs coverage, Workstream hooks, and ${expectedGptIds.length} GPT packages.`,
+  `Validated ${skills.length} skills, promoted manifests, docs coverage, Workstream hooks, and ChatGPT Project skill runtime.`,
 );
