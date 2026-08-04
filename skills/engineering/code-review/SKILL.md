@@ -12,6 +12,21 @@ Both axes run as **parallel sub-agents** so they don't pollute each other's cont
 
 The issue tracker and Workstream protocol should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` or `docs/agents/workstreams.md` is missing.
 
+## Operator contract
+
+`/code-review` is a **ChatGPT Web-owned flow by default**.
+
+Unless the user explicitly overrides the operator for this run:
+
+1. Require the configured operator to be `ChatGPT Web`.
+2. Use `@devspace` for every local file read, code inspection, Git command, diff, test, and local write.
+3. Use connected `@github` MCP for every GitHub read and write, including the review surface, labels, native sub-issue relationships, Project items, corrective Issues, and handoffs.
+4. Never use native Codex filesystem or shell access as a substitute, `gh`, the ChatGPT GitHub App, or direct REST/GraphQL fallback.
+5. If `@devspace` or `@github` is unavailable, stop and report the missing capability.
+6. If invoked from Codex without an explicit operator override, do not perform the review. Leave the frozen implementation handoff intact and transfer the next action to ChatGPT Web.
+
+An explicit override changes the operator only for that run; the overridden operator must still use its own configured execution profile.
+
 ## Workstream envelope
 
 Before reviewing, run `/workstream-tracking` with operation `resolve`, then `reconcile`.
@@ -22,7 +37,7 @@ Choose the durable review surface before doing the review:
 - **Branch or specification review without a Pull Request** — search for an existing review Issue, otherwise create one with `kind:review` and the current `ws:<slug>` label.
 - **Small verification of one source Issue** — use a comment on that Issue when a separate review artifact would add no value.
 
-Claim activity `review`. A review claim is read-only by default and must pin both the fixed point and reviewed `HEAD`. Record `reviewed-head=$(git rev-parse HEAD)` at claim time. Do not review while another operator is still writing or while `HEAD` is moving.
+Claim activity `review`. A review claim is read-only by default and must pin both the fixed point and reviewed `HEAD`. Run `git rev-parse HEAD` through `@devspace` and record the result as `reviewed-head`. Do not review while another operator is still writing or while `HEAD` is moving.
 
 ## Process
 
@@ -95,7 +110,7 @@ End with a one-line summary: total findings per axis, and the worst issue _withi
 
 Before publishing, confirm `git rev-parse HEAD` still equals `<reviewed-head>`. If it changed, stop and restart against a newly handed-off range; do not publish a review of a moving target.
 
-Publish the two-axis report to the durable review surface selected above.
+Publish the two-axis report to the durable review surface selected above through `@github`.
 
 Route findings deliberately:
 

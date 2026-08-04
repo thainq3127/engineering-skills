@@ -26,6 +26,10 @@ Reach for it whenever ChatGPT Web, Codex, or a human need to take turns on the s
 
 Run [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) first. The repository must contain `docs/agents/issue-tracker.md` and `docs/agents/workstreams.md` describing tracker access, Project identity, worktree layout, operators, labels, and status mapping.
 
+## Operator execution profiles
+
+The Workstream claim also fixes the transport profile. ChatGPT Web uses `@devspace` locally and `@github` for GitHub. Codex uses native filesystem, shell, Git, and authenticated `gh`. Missing transport is a stop condition, and neither operator may borrow the other's transport. Nested skills inherit the active profile.
+
 ## Cooperative claims
 
 A claim is a cooperative lock recorded on the Workstream root. It pins the operator, activity, active artifact, fixed point, HEAD, and next action. An agent never steals a live claim and a reviewer never reviews a moving target.
@@ -40,7 +44,9 @@ Implementation, diagnosis, review, and integration end with a handoff comment on
 - resumed sessions can continue from the latest Issue or Pull Request handoff;
 - no branch, worktree, commit, or chat session becomes a tracking Issue;
 - Project items show only roots and actionable artifacts;
-- two agents never write into the same worktree at once.
+- two agents never write into the same worktree at once;
+- Codex never invokes `@devspace` or `@github`;
+- ChatGPT Web never substitutes native Codex shell access or `gh`.
 
 ## Where it fits
 

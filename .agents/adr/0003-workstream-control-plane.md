@@ -23,7 +23,14 @@ The lifecycle operations are `resolve`, `ensure`, `claim`, `register`, `handoff`
 
 ## Tool routing
 
-GitHub operations use the connected `@github` MCP described by per-repository configuration. Local Git operations use the local execution environment. The protocol does not silently fall back to `gh`, a GitHub App, direct API calls, or manual UI actions when MCP lacks an operation; it reports the capability gap.
+Tool routing is part of the operator claim, not a repository-wide default.
+
+- ChatGPT Web uses `@devspace` for every local operation and connected `@github` MCP for every GitHub operation.
+- Codex uses native filesystem, process execution, shell, and local Git for repository work, plus authenticated `gh` CLI for GitHub operations.
+- `/implement` is Codex-owned by default.
+- `/code-review` is ChatGPT Web-owned by default.
+- A missing or unsupported required transport is a stop condition.
+- An operator never borrows another operator's transport and never falls back to the ChatGPT GitHub App or direct REST/GraphQL calls.
 
 ## Invariants
 

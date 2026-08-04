@@ -6,8 +6,6 @@ To disable the protocol, replace the line above with `Workstreams are disabled f
 
 ## Control plane
 
-- GitHub access: connected `@github` MCP
-- Fallback tools: none unless explicitly added to this file
 - Project owner: `<owner>`
 - Project number: `<number>`
 - Project title: `<title>`
@@ -45,6 +43,46 @@ Allowed operator names:
 - `Unassigned`
 
 Only one operator may control a Workstream at a time. Claims are cooperative; an agent must not steal another operator's claim without an explicit handoff or human direction.
+
+## Operator execution profiles
+
+### ChatGPT Web
+
+- Default activities: planning, specification, ticketing, review
+- Local workspace transport: `@devspace`
+- GitHub transport: connected `@github` MCP
+- Default owner of `/implement`: no
+- Default owner of `/code-review`: yes
+- Forbidden transports:
+  - native Codex filesystem or shell as a substitute
+  - `gh`
+  - ChatGPT GitHub App
+  - direct REST or GraphQL fallback
+
+### Codex
+
+- Default activities: implementation, diagnosis, correction, integration
+- Local workspace transport: native filesystem, process execution, shell, and local Git
+- GitHub transport: authenticated `gh` CLI
+- Default owner of `/implement`: yes
+- Default owner of `/code-review`: no
+- Forbidden transports:
+  - `@devspace`
+  - `@github` MCP
+  - ChatGPT GitHub App
+  - direct REST or GraphQL fallback
+
+### Human
+
+- Local workspace transport: `<configured human workflow>`
+- GitHub transport: `<configured human workflow>`
+- Default owner of `/implement`: no
+- Default owner of `/code-review`: no
+- Forbidden transports: `<none or explicit list>`
+
+### Missing transport behavior
+
+Stop and report the unavailable or unauthenticated required transport. Never fall back to another operator's transport. An explicit operator override changes the operator for one run, not the profile's allowed tools.
 
 ## Artifact labels
 

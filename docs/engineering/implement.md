@@ -28,6 +28,10 @@ The idea `implement` runs on is the **seam** — the stable interface a feature 
 
 Around that core it keeps the loop tight — typecheck often, run single test files as it goes, run the required suite once at the end — then commits and leaves a durable handoff. The same operator may continue into review only after that handoff; otherwise the reviewer takes over in a new session.
 
+## Codex operator contract
+
+`implement` is owned by Codex by default. Codex works directly through its native filesystem, shell, process execution, and local Git, and uses authenticated `gh` for GitHub state and handoffs. It must not invoke `@devspace`, `@github`, the ChatGPT GitHub App, or direct API fallbacks. If native execution or `gh` is unavailable, the flow stops rather than borrowing ChatGPT Web's transports.
+
 ## Workstream claim and handoff
 
 Before writing code, `implement` resolves and reconciles the Workstream, confirms blockers, verifies the exact shared worktree and branch, and claims implementation with the current HEAD as fixed point. Another operator's live claim is a stop condition.

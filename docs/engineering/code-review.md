@@ -36,6 +36,10 @@ They run as parallel sub-agents so neither pollutes the other's context, and the
 - Standards and Spec findings arrive in two distinct blocks, each citing its source — a repo standard or baseline smell for one, a quoted spec line for the other.
 - When no spec can be found, the Spec axis reports "no spec available" instead of inventing requirements.
 
+## ChatGPT Web operator contract
+
+`code-review` is owned by ChatGPT Web by default. Every local file read, Git command, diff, test, and local write goes through `@devspace`; every GitHub read and write goes through connected `@github` MCP. It must not switch to native Codex shell access, `gh`, the ChatGPT GitHub App, or direct API fallbacks. If either required app is unavailable, review stops and preserves the frozen handoff.
+
 ## Workstream protocol
 
 Review claims the Workstream only after implementation has handed off a fixed point and reviewed HEAD. Pull Request reviews live on the Pull Request; branch or specification reviews without a Pull Request use a review Issue; a tiny ticket verification can remain a source-Issue comment. Independent findings become corrective Issues in the same Workstream, and the final handoff moves to correction, integration, or completion.

@@ -176,11 +176,39 @@ for (const requiredPath of [
 const githubTrackerTemplate = read(
   "skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md",
 );
-if (!githubTrackerTemplate.includes("connected `@github` MCP")) {
-  errors.push("GitHub tracker template: @github MCP is not the declared primary path");
+for (const requiredPhrase of [
+  "ChatGPT Web",
+  "connected `@github` MCP",
+  "Codex",
+  "authenticated `gh` CLI",
+  "must not substitute another operator's transport",
+]) {
+  if (!githubTrackerTemplate.includes(requiredPhrase)) {
+    errors.push(`GitHub tracker template: missing operator-routing rule ${requiredPhrase}`);
+  }
 }
-if (!githubTrackerTemplate.includes("Do not use `gh`")) {
-  errors.push("GitHub tracker template: silent gh fallback is not explicitly forbidden");
+
+const implementSkill = read("skills/engineering/implement/SKILL.md");
+for (const requiredPhrase of [
+  "`/implement` is a **Codex-owned flow by default**",
+  "Never invoke `@devspace`, `@github` MCP",
+  "authenticated `gh`",
+]) {
+  if (!implementSkill.includes(requiredPhrase)) {
+    errors.push(`implement: missing operator contract ${requiredPhrase}`);
+  }
+}
+
+const codeReviewSkill = read("skills/engineering/code-review/SKILL.md");
+for (const requiredPhrase of [
+  "`/code-review` is a **ChatGPT Web-owned flow by default**",
+  "Use `@devspace`",
+  "Use connected `@github` MCP",
+  "Never use native Codex filesystem or shell access as a substitute, `gh`",
+]) {
+  if (!codeReviewSkill.includes(requiredPhrase)) {
+    errors.push(`code-review: missing operator contract ${requiredPhrase}`);
+  }
 }
 
 if (errors.length > 0) {

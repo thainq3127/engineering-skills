@@ -8,13 +8,29 @@ disable-model-invocation: true
 
 Implement one Issue or other explicitly bounded unit of work.
 
+## Operator contract
+
+`/implement` is a **Codex-owned flow by default**.
+
+Unless the user explicitly overrides the operator for this run:
+
+1. Require the configured operator to be `Codex`.
+2. Use the native filesystem, process execution, shell, and local Git for all repository work.
+3. Use authenticated `gh` CLI for every GitHub read and write, including Issues, Pull Requests, labels, comments, relationships, Project items, and handoffs.
+4. Never invoke `@devspace`, `@github` MCP, the ChatGPT GitHub App, or direct REST/GraphQL as a fallback.
+5. If native local execution or authenticated `gh` is unavailable, stop and report the missing capability.
+6. If invoked from ChatGPT Web without an explicit operator override, do not inspect or modify the implementation worktree and do not perform implementation tracker mutations. Tell the user to run `/implement` in Codex.
+
+An explicit override changes the operator only for that run; it does not permit transport fallback. The overridden operator must still use its own configured execution profile.
+
 ## Enter the Workstream
 
 1. Read `docs/agents/issue-tracker.md` and `docs/agents/workstreams.md`.
-2. Fetch the full active Issue, comments, Workstream root, source specification, blockers, and latest handoff.
-3. Run `/workstream-tracking` with operation `resolve`, then `reconcile`.
-4. Confirm every blocker is closed.
-5. Claim activity `implementation` before modifying code.
+2. Resolve the Codex execution profile and verify native local execution plus authenticated `gh` before any other operation.
+3. Fetch the full active Issue, comments, Workstream root, source specification, blockers, and latest handoff through `gh`.
+4. Run `/workstream-tracking` with operation `resolve`, then `reconcile`.
+5. Confirm every blocker is closed.
+6. Claim activity `implementation` before modifying code.
 
 The claim must verify the configured worktree path, persistent branch, base branch, current `HEAD`, dirty state, and absence of an unexpected merge or rebase. If another operator still owns the Workstream and no explicit handoff names this operator, stop.
 
@@ -45,7 +61,7 @@ Capture the implementation `HEAD`, commit list since the fixed point, commands r
 
 ## Handoff for review
 
-Use `/workstream-tracking` with operation `handoff` on the active Issue or Pull Request.
+Use `/workstream-tracking` with operation `handoff` on the active Issue or Pull Request, publishing the durable handoff through authenticated `gh`.
 
 Record:
 

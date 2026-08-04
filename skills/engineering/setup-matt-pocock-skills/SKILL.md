@@ -23,7 +23,8 @@ Look at the current repository and connected tools. Read whatever exists; do not
 
 - `git remote -v` and `.git/config` — remote host, owner, and repository
 - `git branch --show-current`, the configured default branch, and `git worktree list --porcelain`
-- whether a connected `@github` MCP can read the repository, Issues, Pull Requests, Projects v2, Project fields, and Project items
+- whether ChatGPT Web can use `@devspace` for local work and connected `@github` MCP for GitHub work
+- whether Codex has native access to the intended worktree and authenticated `gh` CLI access to the repository
 - `AGENTS.md` and `CLAUDE.md` at the repository root, including any existing `## Agent skills` block
 - `docs/agents/issue-tracker.md`, `docs/agents/workstreams.md`, `docs/agents/triage-labels.md`, and `docs/agents/domain.md`
 - `CONTEXT.md`, `CONTEXT-MAP.md`, and ADR directories
@@ -43,10 +44,11 @@ The issue tracker is where specifications, implementation Issues, bugs, diagnosi
 
 Default posture in this fork:
 
-- When the remote is GitHub and `@github` MCP is connected, recommend **GitHub through MCP**.
-- Record that local `git` is used for worktrees, branches, commits, refs, and diffs.
-- Do not recommend `gh` as an automatic fallback.
-- When MCP lacks an operation, the configured behavior is to report the capability gap unless the user explicitly opts into a named fallback.
+- Configure GitHub access **per operator**, not once for the whole repository.
+- Recommend `ChatGPT Web`: local work through `@devspace`, GitHub through connected `@github` MCP.
+- Recommend `Codex`: local work through native filesystem, shell, and Git; GitHub through authenticated `gh` CLI.
+- Forbid each operator from substituting the other operator's transports.
+- Treat a missing or unsupported required transport as a stop condition, not permission to fall back.
 
 Other supported tracker choices remain:
 
@@ -73,8 +75,9 @@ Collect or confirm:
 5. Default base branch.
 6. Worktree path and branch naming patterns.
 7. Allowed operator names, normally `ChatGPT Web`, `Codex`, `Human`, and `Unassigned`.
-8. Label registry and whether optional `area:*` labels already exist.
-9. Fallback policy when GitHub MCP lacks an operation. Recommend no fallback.
+8. An execution profile for every operator: default activities, local workspace transport, GitHub transport, forbidden transports, and missing-transport behavior.
+9. Default flow ownership: `/implement` belongs to Codex and `/code-review` belongs to ChatGPT Web unless explicitly overridden.
+10. Label registry and whether optional `area:*` labels already exist.
 
 Write the result to `docs/agents/workstreams.md`, using [workstreams.md](./workstreams.md) as the seed. If disabled, still write a short file saying Workstreams are disabled so model-invoked skills do not guess.
 
@@ -159,7 +162,7 @@ Report:
 
 - files written or updated;
 - tracker and GitHub access policy;
-- Workstream Project, worktree root, base branch, and operators;
+- Workstream Project, worktree root, base branch, operators, and execution profiles;
 - which skills now consume each file;
 - any MCP capability gaps left pending.
 
