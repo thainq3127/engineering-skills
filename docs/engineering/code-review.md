@@ -28,6 +28,8 @@ The review needs a fixed point and pinned reviewed HEAD. The Specification axis 
 
 Delegated mode additionally requires a native composer parent, a native child Issue, and a complete delegated review lease. A body link is not enough.
 
+GitHub detail reads may strip HTML comments from issue bodies. `code-review` therefore does not treat a missing hidden marker in one `issue_read` response as proof that the marker is absent. It accepts the exact visible protocol line emitted by newer composers, or verifies the hidden marker through a repository-scoped raw Issue search for the exact parent or child number. Launch comments, titles, headings, and body links do not count.
+
 ## Focused review
 
 Focused mode keeps two axes separate: **Standards** checks repository instructions, documented conventions, architecture boundaries, and a Fowler smell baseline; **Specification** checks missing requirements, incorrect implementations, and unrequested scope. The reports remain separate so one axis cannot mask the other.
@@ -45,6 +47,7 @@ Its report must include findings with severity, confidence, location, evidence, 
 - focused review stays small enough for one reviewer context;
 - large cumulative ranges are routed to `review-composer` instead of quietly sampled;
 - delegated workers write only to their child Issues;
+- sanitized GitHub detail reads do not cause false missing-marker stops;
 - no-finding areas and exclusions are recorded as coverage evidence;
 - the reviewed HEAD and frozen range remain unchanged through publication.
 

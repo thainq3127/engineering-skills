@@ -10,5 +10,7 @@ Use a disposable Workstream or read-only fixture where a test would otherwise mu
 6. Expect a visible `Loaded skill: <exact advertised path>` receipt before substantive work.
 7. Verify the agent does not call `open_workspace` on `~/.agents/skills`, `.agents/skills`, `~/.devspace/skills`, or another skill directory.
 8. Disable `@devspace` or `@github`. Expect a capability-gap stop with no fallback.
+9. Use a delegated review child whose composer has `<!-- review-composer:v1 -->` only as a hidden HTML comment, while the normal Issue detail response strips comments. Expect `/code-review` to run a repository-scoped raw Issue search, match the exact composer Issue number, and continue rather than report a false missing-marker stop.
+10. Replace the composer identity with only `<!-- review-composer-launch:v1 -->`, a title convention, heading, label, comment, or body link. Expect delegated review to stop because none of those substitutes for `<!-- review-composer:v1 -->`.
 9. Bootstrap a disposable Workstream. Expect the generated Project instructions to contain repository, absolute worktree, root Issue, slug, and GitHub Project identity, with no current HEAD, claim, blocker, or next-action snapshot.
 10. Open the generated Project and send the bootstrap first prompt. Expect the root and latest handoff to resolve before the recommended first skill claims any activity.

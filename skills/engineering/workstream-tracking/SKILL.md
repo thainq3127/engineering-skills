@@ -33,6 +33,24 @@ If `docs/agents/workstreams.md` explicitly says Workstreams are disabled, return
 
 Never treat a Project field or issue-body snapshot as more current than local Git.
 
+### Marker transport compatibility
+
+GitHub transports may return a sanitized Issue body with HTML comments removed. A missing hidden marker in one detail response is not sufficient evidence that the durable marker is absent.
+
+When a flow must validate a machine marker:
+
+1. accept an exact visible protocol line containing the marker as inline code;
+2. otherwise use a raw-preserving Issue search scoped to the exact repository and marker;
+3. require the exact expected Issue number in the result and verify the returned raw body contains the exact marker;
+4. stop when repository identity is ambiguous, the exact Issue does not match, or no raw-preserving read is available.
+
+New review artifacts must carry dual identity:
+
+- composer parent: hidden `<!-- review-composer:v1 -->` plus visible ``- Protocol: `<!-- review-composer:v1 -->` ``;
+- delegated child lease: hidden `<!-- delegated-review-lease:v1 -->` plus visible ``- Protocol: `<!-- delegated-review-lease:v1 -->` ``.
+
+A launch marker, comment, body link, title, heading, or label does not substitute for the exact protocol identity.
+
 ## Operator execution profiles
 
 `docs/agents/workstreams.md` must define an execution profile for every allowed operator. A profile names:
@@ -249,7 +267,7 @@ Review Synthesizer becomes the sole writer during `review-synthesis` for:
 To claim `delegated-review`:
 
 1. resolve the Workstream root, composer parent, child Issue, and native parent relationships;
-2. confirm the parent carries the composer marker and holds the Workstream-level claim;
+2. confirm the parent carries the composer identity using the marker transport compatibility rule and holds the Workstream-level claim;
 3. confirm the child contains a complete delegated lease;
 4. confirm the lease range matches the composer range and the reviewed commit remains resolvable;
 5. confirm no other reviewer lease writes to the same child;

@@ -32,6 +32,8 @@ The leading idea is **composition**. The skill freezes a fixed point and reviewe
 
 Each child receives a self-contained prompt, frozen Delivery Context, and delegated lease. Reviewers still report technical findings exhaustively, but they do not turn severity into delivery priority. The composer does not ask you to confirm the context again; missing or contradictory context routes back to the spec instead. It publishes a launch list, records synthesis-ready conditions, then stops.
 
+Composer and delegated-lease identities are written twice: once as the canonical hidden HTML marker and once as a visible protocol line containing that exact marker as inline code. This dual identity survives GitHub transports that sanitize comments without weakening the exact-marker contract.
+
 ## It's working if
 
 - every source ticket and applicable requirement has a named reviewer or explicit exclusion;
@@ -39,6 +41,7 @@ Each child receives a self-contained prompt, frozen Delivery Context, and delega
 - cross-domain seams have Secondary coverage only where useful;
 - no child receives a duplicate full-batch assignment;
 - every child has an exact prompt and delegated lease;
+- parent and child identities remain verifiable through both hidden and visible protocol forms;
 - the parent tracks progress through native sub-issues;
 - the final handoff names Review Synthesizer after all required children complete.
 

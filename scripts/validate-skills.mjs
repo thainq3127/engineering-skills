@@ -249,6 +249,9 @@ requirePatterns("code-review", codeReviewSkill, [
   ["child-only write surface", /allowed write surface is this child Issue only/i],
   ["delegated prohibition on corrective issue creation", /Do not create corrective or diagnosis Issues/i],
   ["large-review route to review-composer", /route to `?\/review-composer`?/i],
+  ["sanitized marker warning", /issue_read.*not proof that the marker is absent/is],
+  ["raw-preserving exact issue verification", /raw-preserving GitHub issue search[\s\S]*exact expected issue number/i],
+  ["launch marker rejection", /review-composer-launch:v1[\s\S]*not.*substitute/is],
 ]);
 
 const toSpecSkill = read("skills/engineering/to-spec/SKILL.md");
@@ -288,6 +291,8 @@ requirePatterns("review-composer", reviewComposerSkill, [
   ["frozen delivery context", /frozen Delivery Context snapshot/i],
   ["no repeated delivery confirmation", /Do not ask the user to confirm that context again/i],
   ["review evidence is not priority", /technical severity separate from delivery priority/i],
+  ["visible composer protocol", /visible protocol line[\s\S]*review-composer:v1/i],
+  ["visible delegated lease protocol", /Protocol: `<!-- delegated-review-lease:v1 -->`/i],
 ]);
 
 const reviewSynthesizerSkill = read("skills/engineering/review-synthesizer/SKILL.md");
@@ -321,6 +326,9 @@ requirePatterns("workstream-tracking", workstreamTrackingSkill, [
   ["corrective issues outside composer", /corrective and diagnosis Issues are native direct sub-issues of the Workstream root/i],
   ["bootstrap ensure exception", /caller is `?\/workstream-bootstrap`?[\s\S]*without first taking a Workstream claim/is],
   ["bootstrap result unassigned", /leave operator and activity as `Unassigned`/i],
+  ["marker transport compatibility", /Marker transport compatibility/i],
+  ["sanitized detail is not absence", /missing hidden marker.*not sufficient evidence/is],
+  ["exact raw marker issue match", /raw-preserving Issue search[\s\S]*exact expected Issue number/i],
 ]);
 
 requirePatterns("implement", implementSkill, [

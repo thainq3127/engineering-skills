@@ -42,6 +42,8 @@ A claim is a cooperative lock recorded on the Workstream root. It pins the opera
 
 A Review Composer can keep the Workstream claim while several reviewers work in parallel. Each lease fixes one composer Issue, one child review Issue, one frozen range, one slice, one axis, and one allowed write surface. The worker may inspect code but may write only to that child. Missing hierarchy or lease data stops the review rather than widening it.
 
+Machine markers are transport-compatible rather than transport-naive. New review artifacts carry both a hidden HTML marker and a visible protocol line. When a GitHub detail read strips comments, marker validation uses that visible line or an exact repository-scoped raw search for the expected Issue number. A launch marker, title, heading, label, comment, or body link never substitutes for the protocol identity.
+
 Composer owns topology, coverage, prompts, leases, and launch. Review Synthesizer later owns the candidate and approved finding registers, human evaluation gate, final verdict, deferred ledger, Workstream transition, Project placement, and corrective, diagnosis, or verification ticket creation.
 
 ## Durable handoffs
@@ -56,6 +58,7 @@ Implementation, diagnosis, review, and integration end with a handoff comment on
 - Project items show only roots and actionable artifacts;
 - two agents never write into the same worktree at once;
 - parallel reviewers have non-overlapping child-Issue write surfaces and do not mutate the root or Project;
+- sanitized Issue detail responses do not erase durable review identity;
 - Codex never invokes `@devspace` or `@github`;
 - ChatGPT Web never substitutes native Codex shell access or `gh`.
 

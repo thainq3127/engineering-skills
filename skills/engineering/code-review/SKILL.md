@@ -37,11 +37,26 @@ Resolve the active review artifact and its native parent before inspecting the d
 
 Use **delegated worker mode** when all of these are true:
 
-- the active Issue is a native direct sub-issue of an Issue marked `<!-- review-composer:v1 -->`;
-- the child contains a `<!-- delegated-review-lease:v1 -->` block;
+- the active Issue is a native direct sub-issue of an Issue whose composer identity is verified as `<!-- review-composer:v1 -->`;
+- the child contains a delegated lease whose identity is verified as `<!-- delegated-review-lease:v1 -->`;
 - the lease pins the composer Issue, child Issue, frozen range, slice, axis, and allowed write surface.
 
 Missing delegated lease is a stop condition. A body link to a parent is not enough.
+
+### Marker transport rule
+
+GitHub detail reads may sanitize issue bodies and remove HTML comments. Absence of a hidden marker from an `issue_read` response is therefore not proof that the marker is absent on GitHub.
+
+Before stopping for a missing composer or lease marker:
+
+1. Accept the exact visible protocol line when present:
+   - ``- Protocol: `<!-- review-composer:v1 -->` `` on the parent;
+   - ``- Protocol: `<!-- delegated-review-lease:v1 -->` `` on the child.
+2. Otherwise run a raw-preserving GitHub issue search scoped to the same owner and repository for the exact hidden marker.
+3. Require the search result to include the exact expected issue number and require its returned body to contain the exact marker.
+4. Treat no exact-number match, ambiguous repository identity, or unavailable raw-preserving search as a stop condition.
+
+Do not accept `<!-- review-composer-launch:v1 -->`, a comment on another Issue, a title convention, a body link, or a structurally similar heading as a substitute for the exact composer identity.
 
 Use **focused mode** otherwise, but only when the review is genuinely bounded to one small PR, one source ticket, or one narrow domain slice. If the range is multi-ticket, multi-domain, cross-cutting, or too large for one reviewer context, stop and hand it to `/review-composer` instead of quietly widening focused mode.
 
@@ -145,6 +160,8 @@ Delegated mode is not a smaller composer. It is one bounded reviewer lease.
 ### 1. Validate hierarchy and lease
 
 Read the Workstream root, composer parent, child Issue, parent relationship, and lease through `@github`.
+
+Validate hidden marker identity through the marker transport rule above. Do not conclude that a marker is missing merely because the normal Issue detail response omitted HTML comments.
 
 Confirm:
 

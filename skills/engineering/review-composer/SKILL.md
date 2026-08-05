@@ -79,7 +79,8 @@ Do not create duplicated full-scope reviews.
 Search first for a composer with the same Workstream and frozen range. Otherwise create one parent Issue containing:
 
 - `kind:review` and `ws:<slug>` labels;
-- marker `<!-- review-composer:v1 -->`;
+- hidden marker `<!-- review-composer:v1 -->`;
+- visible protocol line ``- Protocol: `<!-- review-composer:v1 -->` `` so transports that sanitize HTML comments can still verify the identity;
 - frozen review contract;
 - frozen Delivery Context snapshot and source specification;
 - source tickets and specifications;
@@ -134,6 +135,7 @@ Use this lease shape:
 <!-- delegated-review-lease:v1 -->
 ## Delegated review lease
 
+- Protocol: `<!-- delegated-review-lease:v1 -->`
 - Composer issue: #<composer>
 - Child review issue: #<child>
 - Frozen range: `<fixed-point>...<reviewed-head>`
@@ -143,6 +145,8 @@ Use this lease shape:
 - Local code writes: forbidden
 - Project and Workstream mutations: forbidden
 ```
+
+The hidden marker and visible protocol line are the same identity expressed twice for transport compatibility. Do not replace either with a launch marker, title convention, or prose-only heading.
 
 The minimum reviewer report contains scope, reviewed range, axis and slice, findings with evidence and correction boundary, no-finding areas, questions or insufficient evidence, verification limits, exclusions, and completion status.
 
