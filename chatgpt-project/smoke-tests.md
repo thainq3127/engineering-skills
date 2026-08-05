@@ -2,11 +2,13 @@
 
 Use a disposable Workstream or read-only fixture where a test would otherwise mutate durable state.
 
-1. Configure `skill_root: ~/.agents/skills`, invoke `/code-review`, and expect `@devspace` to read `~/.agents/skills/code-review/SKILL.md` before substantive work.
-2. Send an unqualified engineering request. Expect `~/.agents/skills/ask-matt/SKILL.md` to be loaded first, followed by the exact routed skill.
-3. Remove `skill_root`. Expect a stop naming the missing configuration.
-4. Point `skill_root` at a directory that does not contain direct skill folders. Expect a stop rather than recursive guessing.
-5. Request a nonexistent slash skill. Expect a stop naming the exact missing path.
-6. Expect a visible `Loaded skill: <exact path>` receipt before substantive work.
-7. Disable `@devspace` or `@github`. Expect a capability-gap stop with no fallback.
-
+1. Open a project whose DevSpace catalog advertises `code-review`, invoke `/code-review`, and expect the exact advertised `SKILL.md` to be read before substantive work.
+2. Send an unqualified engineering request. Expect the advertised `ask-matt` skill to be read first, followed by the exact routed catalog skill.
+3. Request a slash skill absent from the returned catalog. Expect a stop naming the missing catalog entry, with no inferred filesystem path.
+4. Present duplicate catalog entries for one skill name. Expect ambiguity to stop execution.
+5. Make an advertised `SKILL.md` unreadable. Expect a capability or discovery stop rather than path guessing.
+6. Expect a visible `Loaded skill: <exact advertised path>` receipt before substantive work.
+7. Verify the agent does not call `open_workspace` on `~/.agents/skills`, `.agents/skills`, `~/.devspace/skills`, or another skill directory.
+8. Disable `@devspace` or `@github`. Expect a capability-gap stop with no fallback.
+9. Bootstrap a disposable Workstream. Expect the generated Project instructions to contain repository, absolute worktree, root Issue, slug, and GitHub Project identity, with no current HEAD, claim, blocker, or next-action snapshot.
+10. Open the generated Project and send the bootstrap first prompt. Expect the root and latest handoff to resolve before the recommended first skill claims any activity.

@@ -26,10 +26,13 @@ To disable the protocol, replace the line above with `Workstreams are disabled f
 
 ## Local layout
 
+- Bootstrap checkout: `<absolute stable checkout used to create Workstreams>`
 - Worktree root: `<absolute directory containing worktrees>`
 - Default base branch: `<branch>`
 - Worktree path pattern: `<worktree-root>/<workstream-slug>`
 - Branch pattern: `workstream/<workstream-slug>`
+
+The bootstrap checkout is a stable control checkout, not a Workstream. `/workstream-bootstrap` runs there, leaves it untouched, and creates each persistent Workstream worktree beneath the Worktree root. The basename of every generated Workstream worktree must equal its canonical slug.
 
 Local Git is authoritative for worktree path, branch, HEAD, dirty state, and merge/rebase state.
 
@@ -54,6 +57,7 @@ Parallel review is the bounded exception. One Review Composer retains the Workst
 - Local workspace transport: `@devspace`
 - GitHub transport: connected `@github` MCP
 - Default owner of `/implement`: no
+- Default owner of `/workstream-bootstrap`: no
 - Default owner of `/code-review`: yes
 - Default owner of `/review-composer`: yes
 - Default owner of `/review-synthesizer`: yes
@@ -65,10 +69,11 @@ Parallel review is the bounded exception. One Review Composer retains the Workst
 
 ### Codex
 
-- Default activities: implementation, diagnosis, correction, integration
+- Default activities: bootstrap, implementation, diagnosis, correction, integration
 - Local workspace transport: native filesystem, process execution, shell, and local Git
 - GitHub transport: authenticated `gh` CLI
 - Default owner of `/implement`: yes
+- Default owner of `/workstream-bootstrap`: yes
 - Default owner of `/code-review`: no
 - Default owner of `/review-composer`: no
 - Default owner of `/review-synthesizer`: no
@@ -83,6 +88,7 @@ Parallel review is the bounded exception. One Review Composer retains the Workst
 - Local workspace transport: `<configured human workflow>`
 - GitHub transport: `<configured human workflow>`
 - Default owner of `/implement`: no
+- Default owner of `/workstream-bootstrap`: no
 - Default owner of `/code-review`: no
 - Default owner of `/review-composer`: no
 - Default owner of `/review-synthesizer`: no
@@ -162,6 +168,8 @@ Only Review Synthesizer evaluates a completed swarm, updates the final parent ve
 ## Project membership
 
 Always add an active Workstream root.
+
+A newly bootstrapped root starts in the configured queued status with operator and activity both `Unassigned`. Creating the local worktree and Project item does not claim planning for ChatGPT Web. The first ChatGPT session claims its own activity after resolving the bootstrap handoff.
 
 Add a child Issue or Pull Request only when it is:
 

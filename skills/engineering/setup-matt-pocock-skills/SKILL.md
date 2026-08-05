@@ -9,7 +9,7 @@ disable-model-invocation: true
 Scaffold the per-repository configuration that the engineering skills assume:
 
 - **Issue tracker** — where durable Issues, Pull Requests, reviews, and decisions live
-- **Workstreams** — how one root issue maps to one local worktree and branch, how operators claim it, and which GitHub Project is the control plane
+- **Workstreams** — how one root issue maps to one local worktree and branch, which stable bootstrap checkout provisions new Workstreams, how operators claim them, and which GitHub Project is the control plane
 - **Triage labels** — the strings used for the canonical triage roles
 - **Domain docs** — where `CONTEXT.md` and ADRs live, and the consumer rules for reading them
 
@@ -23,13 +23,14 @@ Look at the current repository and connected tools. Read whatever exists; do not
 
 - `git remote -v` and `.git/config` — remote host, owner, and repository
 - `git branch --show-current`, the configured default branch, and `git worktree list --porcelain`
+- the absolute current checkout and whether it is suitable as the stable bootstrap checkout for creating future Workstreams
 - whether ChatGPT Web can use `@devspace` for local work and connected `@github` MCP for GitHub work
 - whether Codex has native access to the intended worktree and authenticated `gh` CLI access to the repository
 - `AGENTS.md` and `CLAUDE.md` at the repository root, including any existing `## Agent skills` block
 - `docs/agents/issue-tracker.md`, `docs/agents/workstreams.md`, `docs/agents/triage-labels.md`, and `docs/agents/domain.md`
 - `CONTEXT.md`, `CONTEXT-MAP.md`, and ADR directories
 - `.scratch/` — evidence of a local-markdown issue tracker convention
-- whether the `triage`, `workstream-tracking`, `review-composer`, and `review-synthesizer` skills are installed
+- whether the `triage`, `workstream-bootstrap`, `workstream-tracking`, `review-composer`, and `review-synthesizer` skills are installed
 - monorepo signals such as `pnpm-workspace.yaml`, a `workspaces` field, or multiple populated packages
 
 If GitHub Projects v2 is already in use, list the available Projects, fields, and a small sample of items before recommending one. Do not mutate anything during exploration.
@@ -71,20 +72,26 @@ Collect or confirm:
 1. Whether Workstreams are enabled.
 2. GitHub Projects v2 owner, number, and title. Prefer a clean existing Project; create a new one only after confirmation.
 3. Status mapping for queued, active, and done using fields that actually exist.
-4. Absolute directory under which Workstream worktrees live.
-5. Default base branch.
-6. Worktree path and branch naming patterns.
-7. Allowed operator names, normally `ChatGPT Web`, `Codex`, `Human`, and `Unassigned`.
-8. An execution profile for every operator: default activities, local workspace transport, GitHub transport, forbidden transports, and missing-transport behavior.
-9. Default flow ownership: `/implement` belongs to Codex; `/code-review`, `/review-composer`, and `/review-synthesizer` belong to ChatGPT Web unless explicitly overridden.
-10. Review hierarchy and delegated lease policy:
+4. Absolute bootstrap checkout used only as the stable control point for provisioning new Workstreams.
+5. Absolute directory under which Workstream worktrees live. The bootstrap checkout must not be inside a generated Workstream path.
+6. Default base branch.
+7. Worktree path and branch naming patterns. Recommend a worktree folder basename equal to the canonical Workstream slug.
+8. Allowed operator names, normally `ChatGPT Web`, `Codex`, `Human`, and `Unassigned`.
+9. An execution profile for every operator: default activities, local workspace transport, GitHub transport, forbidden transports, and missing-transport behavior.
+10. Default flow ownership: `/workstream-bootstrap` and `/implement` belong to Codex; `/code-review`, `/review-composer`, and `/review-synthesizer` belong to ChatGPT Web unless explicitly overridden.
+11. Bootstrap policy:
+    - `/workstream-bootstrap` is user-invoked and runs only from the configured bootstrap checkout;
+    - it confirms the durable objective, completion conditions, identity, base SHA, and first workflow step before mutation;
+    - it provisions through `/workstream-tracking` and leaves the Workstream unassigned;
+    - it emits complete ChatGPT Project instructions and stops before planning or implementation.
+12. Review hierarchy and delegated lease policy:
     - Review Composer parent as a native direct child of the Workstream root;
     - review workers as native direct children of the composer;
     - corrective and diagnosis Issues as direct children of the Workstream root;
     - Review Synthesizer-only synthesis, Workstream transition, and follow-up ticket creation after human approval;
     - review children outside the Project by default;
     - native sub-issue capability gaps are stop conditions.
-11. Label registry and whether optional `area:*` labels already exist.
+13. Label registry and whether optional `area:*` labels already exist.
 
 Write the result to `docs/agents/workstreams.md`, using [workstreams.md](./workstreams.md) as the seed. If disabled, still write a short file saying Workstreams are disabled so model-invoked skills do not guess.
 
@@ -171,7 +178,7 @@ Report:
 
 - files written or updated;
 - tracker and GitHub access policy;
-- Workstream Project, worktree root, base branch, operators, execution profiles, review hierarchy, and delegated review lease policy;
+- Workstream Project, bootstrap checkout, worktree root, base branch, operators, execution profiles, bootstrap policy, review hierarchy, and delegated review lease policy;
 - which skills now consume each file;
 - any MCP capability gaps left pending.
 

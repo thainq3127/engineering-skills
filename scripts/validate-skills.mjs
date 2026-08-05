@@ -162,9 +162,17 @@ if (!reviewSynthesizer) {
   errors.push("review-synthesizer: must remain model-invoked so completed review swarms can hand off to it");
 }
 
+const workstreamBootstrap = skills.find((skill) => skill.name === "workstream-bootstrap");
+if (!workstreamBootstrap) {
+  errors.push("workstream-bootstrap: promoted skill is missing");
+} else if (!workstreamBootstrap.userInvoked) {
+  errors.push("workstream-bootstrap: must remain user-invoked so durable provisioning requires an explicit human command");
+}
+
 for (const name of [
   "ask-matt",
   "grill-with-docs",
+  "workstream-bootstrap",
   "to-spec",
   "to-tickets",
   "implement",
@@ -251,6 +259,22 @@ requirePatterns("to-spec", toSpecSkill, [
   ["no static delivery state", /Keep current values in the specification, not in static project instructions/i],
 ]);
 
+const workstreamBootstrapSkill = read("skills/engineering/workstream-bootstrap/SKILL.md");
+requirePatterns("workstream-bootstrap", workstreamBootstrapSkill, [
+  ["Codex operator profile", /Codex-owned flow by default/i],
+  ["native and gh transport", /native filesystem[\s\S]*authenticated `gh` CLI/i],
+  ["bootstrap checkout boundary", /current directory is exactly the configured bootstrap checkout/i],
+  ["explicit state machine", /PREFLIGHT[\s\S]*AWAIT_CONFIRMATION[\s\S]*PROVISION[\s\S]*GENERATE_CHATGPT_HANDOFF/i],
+  ["durable objective before naming", /Durable objective[\s\S]*Completion conditions[\s\S]*Name and slug/i],
+  ["one question interview", /Ask one question at a time/i],
+  ["full confirmation packet", /Create this Workstream with the configuration above\?/i],
+  ["tracking ensure provisioning", /workstream-tracking` with operation `ensure`/i],
+  ["unassigned bootstrap result", /Operator: `Unassigned`[\s\S]*Activity: `Unassigned`/i],
+  ["project instructions output", /ChatGPT Project instructions[\s\S]*no placeholders/i],
+  ["no dynamic project state", /Do not insert dynamic execution state such as current HEAD/i],
+  ["no destructive repair", /Never overwrite a non-empty path[\s\S]*delete a worktree/i],
+]);
+
 const reviewComposerSkill = read("skills/engineering/review-composer/SKILL.md");
 requirePatterns("review-composer", reviewComposerSkill, [
   ["compose phase", /## Compose/i],
@@ -295,6 +319,8 @@ requirePatterns("workstream-tracking", workstreamTrackingSkill, [
   ["composer composition authority", /Review Composer is the sole writer during composition/i],
   ["synthesizer synthesis authority", /Review Synthesizer becomes the sole writer during `review-synthesis`/i],
   ["corrective issues outside composer", /corrective and diagnosis Issues are native direct sub-issues of the Workstream root/i],
+  ["bootstrap ensure exception", /caller is `?\/workstream-bootstrap`?[\s\S]*without first taking a Workstream claim/is],
+  ["bootstrap result unassigned", /leave operator and activity as `Unassigned`/i],
 ]);
 
 requirePatterns("implement", implementSkill, [
@@ -310,10 +336,14 @@ requirePatterns("ask-matt", askMattSkill, [
   ["completed swarm routing", /required children are complete.*`\/review-synthesizer`/i],
   ["focused review routing", /Focused PR.*`\/code-review`/i],
   ["unknown-cause bug routing", /cause is still unclear.*`\/diagnosing-bugs`/i],
+  ["new Workstream routing", /New durable multi-session objective.*`\/workstream-bootstrap`/i],
 ]);
 
 const workstreamTemplate = read("skills/engineering/setup-matt-pocock-skills/workstreams.md");
 requirePatterns("Workstream setup template", workstreamTemplate, [
+  ["bootstrap checkout", /Bootstrap checkout:/i],
+  ["bootstrap folder slug invariant", /basename of every generated Workstream worktree must equal its canonical slug/i],
+  ["bootstrap result unassigned", /newly bootstrapped root.*`Unassigned`/is],
   ["review hierarchy", /Review swarm hierarchy/i],
   ["delegated review leases", /Delegated review leases/i],
   ["composer Project placement", /add the active Review Composer parent/i],
@@ -329,6 +359,7 @@ const projectTemplate = read("chatgpt-project/instructions.template.md");
 requirePatterns("ChatGPT Project skill template", projectTemplate, [
   ["repository identity", /repository: <owner\/repository>/i],
   ["workspace identity", /workspace: <absolute-or-home-relative-project-workspace-path>/i],
+  ["Workstream slug identity", /workstream_slug: <workstream-slug-or-null>/i],
   ["required skill runtime", /required: true/i],
   ["default Ask Matt router", /default_router: "\/ask-matt"/i],
   ["open project workspace first", /Open `project\.workspace` with `@devspace`/i],
@@ -342,10 +373,18 @@ requirePatterns("ChatGPT Project skill template", projectTemplate, [
   ["dynamic-state prohibition", /Do not store current HEAD.*active artifact/i],
 ]);
 
+const bootstrapProjectTemplate = read(
+  "skills/engineering/workstream-bootstrap/project-instructions.template.md",
+);
+if (bootstrapProjectTemplate !== projectTemplate) {
+  errors.push("workstream-bootstrap: bundled Project instructions template must match chatgpt-project/instructions.template.md exactly");
+}
+
 for (const requiredPath of [
   "chatgpt-project/README.md",
   "chatgpt-project/smoke-tests.md",
   "chatgpt-project/instructions.template.md",
+  "skills/engineering/workstream-bootstrap/project-instructions.template.md",
 ]) {
   if (!exists(requiredPath)) errors.push(`ChatGPT Project runtime: missing ${requiredPath}`);
 }

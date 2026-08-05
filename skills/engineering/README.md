@@ -11,6 +11,7 @@ Reachable only when you type them (Claude Code: `disable-model-invocation: true`
 - **[triage](./triage/SKILL.md)** — Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 - **[setup-matt-pocock-skills](./setup-matt-pocock-skills/SKILL.md)** — Configure tracker access, shared Workstreams and worktrees, Projects v2, triage labels, and domain docs. Run once per repo.
+- **[workstream-bootstrap](./workstream-bootstrap/SKILL.md)** — Create one durable Workstream from the configured bootstrap checkout, then emit its ready-to-paste ChatGPT Project handoff.
 - **[to-spec](./to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker.
 - **[to-tickets](./to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — text in a local file, or native blocking links on a real tracker.
 - **[implement](./implement/SKILL.md)** — Build one tracked Issue at pre-agreed seams, verify and commit it, then leave a frozen GitHub handoff for `/code-review`.

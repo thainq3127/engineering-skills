@@ -1,0 +1,5 @@
+interface:
+  display_name: "Workstream Bootstrap"
+  short_description: "Create a Workstream and ChatGPT Project handoff"
+policy:
+  allow_implicit_invocation: false

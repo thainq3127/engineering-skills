@@ -28,7 +28,7 @@ If `docs/agents/workstreams.md` explicitly says Workstreams are disabled, return
 
 - **GitHub Issues and Pull Requests** hold specifications, implementation contracts, bugs, diagnosis, decisions, reviews, corrective work, and handoff comments.
 - **GitHub Projects v2** is the operational control plane: active workstreams, active or frontier artifacts, and their current status.
-- **Local Git** is authoritative for worktree path, branch, base branch, HEAD, fixed points, dirty state, and merge or rebase state.
+- **Local Git** is authoritative for bootstrap checkout, worktree path, branch, base branch, HEAD, fixed points, dirty state, and merge or rebase state.
 - The **Workstream root issue** is the canonical identity and low-resolution index for the shared objective.
 
 Never treat a Project field or issue-body snapshot as more current than local Git.
@@ -58,7 +58,7 @@ All file reads, code inspection, Git commands, tests, and local writes must go t
 
 ### Codex
 
-- normal activities: implementation, diagnosis, correction, integration;
+- normal activities: bootstrap, implementation, diagnosis, correction, integration;
 - local workspace transport: native filesystem, process execution, shell, and local Git;
 - GitHub transport: authenticated `gh` CLI;
 - forbidden: `@devspace`, `@github` MCP, the ChatGPT GitHub App, and direct REST or GraphQL calls as a fallback.
@@ -128,6 +128,16 @@ After resolving, validate:
 
 Use `ensure` only when a user-invoked flow has already established that this is a durable, multi-step objective deserving a Workstream.
 
+When the caller is `/workstream-bootstrap`, additionally require:
+
+- the current directory equals the configured bootstrap checkout;
+- the caller recorded explicit human approval of the full provisioning packet;
+- the packet pins one display name, slug, objective, completion conditions, worktree path, branch, base branch, and base SHA;
+- the worktree folder basename equals the slug;
+- the bootstrap checkout is not itself recorded as a Workstream worktree.
+
+The bootstrap caller may use `ensure` without first taking a Workstream claim because the Workstream does not exist yet. After creation it must post one bootstrap handoff, leave operator and activity as `Unassigned`, set the root as the active artifact, and point the next action at creation of the ChatGPT Project. This exception does not permit planning, specification, ticketing, implementation, or code changes before a later operator claims the corresponding activity.
+
 Before creating anything, search for:
 
 - an exact `[Workstream] <name>` title;
@@ -144,7 +154,11 @@ Then, in order:
 4. Record the exact absolute worktree path, branch, and base branch in the root managed block.
 5. Add the root issue to the configured Project and map it to the queued or active status as appropriate.
 
+For `/workstream-bootstrap`, use the configured queued status. Do not mark the root active merely because provisioning completed.
+
 Never overwrite a non-empty path, repoint an unrelated worktree, or recreate an existing branch from a different base.
+
+Never modify, clean, reset, or repurpose the configured bootstrap checkout while ensuring a Workstream.
 
 ## Claim
 
@@ -307,6 +321,7 @@ Do not paste full terminal logs or private reasoning. Record facts another opera
 Typical transitions are:
 
 ```text
+bootstrap -> planning
 planning -> specification -> ticketing -> implementation -> review
 implementation -> review-composition -> delegated-review -> review-synthesis
 review-synthesis -> correction -> review-composition

@@ -14,6 +14,8 @@ A **flow** is a path through the skills. Most paths run along one **main flow**,
 
 The route most work travels. You have an idea and want it built.
 
+0. **Need a new durable Workstream first?** Run **`/workstream-bootstrap` in Codex** from the configured bootstrap checkout. It confirms the durable objective and completion conditions, provisions the root Issue, branch, worktree, and Project item, then emits the ChatGPT Project instructions. Skip it for a one-ticket change or when the Workstream already exists.
+
 1. **`/grill-with-docs`** — sharpen the idea by interview. Start here when you **have a codebase**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No codebase? Use `/grill-me` — see Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail.)
 2. **Branch — can you settle every question in conversation?** If a question needs a runnable answer (state, business logic, a UI you have to see), detour through a prototype, bridged by **`/handoff`** in both directions (see Crossing sessions):
    - **`/handoff`** out, then open a fresh session against that file,
@@ -43,6 +45,8 @@ The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-diction
 
 `grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `review-composer`, `review-synthesizer`, `code-review`, `diagnosing-bugs`, `triage`, and `wayfinder` invoke it at their own lifecycle boundaries. Model-invoked writer disciplines such as `prototype`, `tdd`, `domain-modeling`, `research`, and `resolving-merge-conflicts` inherit the caller's claim or claim before standalone writes. Worktrees, branches, commits, and chat sessions never become tracking Issues.
 
+`workstream-bootstrap` is the user-invoked entry before that lifecycle. It calls `ensure` from the configured bootstrap checkout, creates the durable identity, leaves it unassigned, and stops after producing the ChatGPT Project handoff.
+
 ## Review routing
 
 - **Focused PR, focused single-ticket review, or one narrow domain slice** → `/code-review` in focused mode.
@@ -52,6 +56,13 @@ The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-diction
 - **A defect whose cause is still unclear** → `/diagnosing-bugs`, not a speculative corrective ticket.
 
 The composer owns topology, the frozen Delivery Context, prompts, leases, coverage, and launch. Delegated reviewers write only to assigned child Issues. The synthesizer owns stable finding IDs, product-aware dispositions, the human evaluation gate, final verdict, deferred ledger, Workstream transition, and corrective, diagnosis, or verification ticket creation.
+
+## Workstream entry routing
+
+- **Repository not configured for tracker, Workstreams, or operators** → `/setup-matt-pocock-skills`.
+- **New durable multi-session objective with no Workstream yet** → run `/workstream-bootstrap` in Codex from the configured bootstrap checkout.
+- **Existing Workstream** → resolve its latest handoff and continue with the named next skill; do not bootstrap another root because the chat changed.
+- **One bounded ticket or small bug** → use the ordinary Issue flow without creating a Workstream.
 
 ## On-ramps
 

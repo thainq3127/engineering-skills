@@ -84,9 +84,9 @@ The first command previews changes. The second moves existing promoted-skill dir
 
 ### ChatGPT Project skill runtime
 
-The ChatGPT Web and mobile workflow uses one Project and loads canonical `SKILL.md` files through `@devspace`. Configure the project workspace and `skill_root`, then invoke flows such as `/grill-with-docs`, `/review-composer`, and `/review-synthesizer`.
+The ChatGPT Web and mobile workflow uses one Project and loads canonical `SKILL.md` files from the skills catalog returned by `@devspace open_workspace`. Configure only the project workspace, then invoke flows such as `/grill-with-docs`, `/review-composer`, and `/review-synthesizer`.
 
-The Project template and smoke tests live in [`chatgpt-project/`](./chatgpt-project/README.md). `skill_root` is the directory whose direct children are installed skills, normally `~/.agents/skills`.
+The Project template and smoke tests live in [`chatgpt-project/`](./chatgpt-project/README.md). DevSpace owns skill discovery and advertises the exact readable `SKILL.md` paths; Project instructions must not construct paths or open a second skills workspace.
 
 ### 2. Run `/setup-matt-pocock-skills`
 
@@ -214,6 +214,7 @@ Skills I use daily for code work.
 - **[triage](./skills/engineering/triage/SKILL.md)** — Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./skills/engineering/improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 - **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)** — Configure tracker access, shared Workstreams and worktrees, Projects v2, triage labels, and domain docs. Run once per repo before using the other engineering skills.
+- **[workstream-bootstrap](./skills/engineering/workstream-bootstrap/SKILL.md)** — Create one durable Workstream from the configured bootstrap checkout, provision its root Issue, branch, worktree, and Project item, then emit ready-to-paste ChatGPT Project instructions.
 - **[to-spec](./skills/engineering/to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker. No interview — just synthesizes what you've already discussed.
 - **[to-tickets](./skills/engineering/to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — written as text in a local file, or as native blocking links on a real tracker.
 - **[implement](./skills/engineering/implement/SKILL.md)** — Build one tracked Issue at pre-agreed seams, verify and commit it, then leave a frozen GitHub handoff for `/code-review`.
