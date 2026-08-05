@@ -43,6 +43,8 @@ Run `/workstream-tracking` with `resolve`, then `reconcile`. Require an existing
 Verify:
 
 - current local HEAD equals the composer reviewed HEAD;
+- the composer contains one frozen, user-confirmed Delivery Context snapshot with its controlling specification and confirmation evidence;
+- the product stage, current objective, critical user journeys, release gate, operating envelope, and explicit non-goals are complete and internally consistent;
 - every required child is a native direct child of the composer;
 - every required child is complete;
 - every child used the exact same fixed point, reviewed HEAD, slice, and axis recorded by its lease;
@@ -50,6 +52,8 @@ Verify:
 - all child bodies and review comments are readable.
 
 Read every child completely. Do not synthesize from summaries alone.
+
+The upstream specification confirmation is authoritative for this frozen review. Do not ask the user to confirm the Delivery Context again unless it is missing, contradictory, or the implementation makes the stated operating envelope impossible.
 
 ## 2. Prepare evaluation
 
@@ -73,8 +77,15 @@ Every candidate finding records:
 - controlling requirement or repository invariant;
 - proposed severity: `blocker`, `major`, or `minor`;
 - proposed confidence: `high`, `medium`, or `low`;
+- evidence level: `observed`, `reproducible`, `plausible`, or `theoretical`;
+- user exposure: `critical-path`, `reachable`, `future-only`, or `currently-unreachable`;
+- likelihood: `high`, `medium`, `low`, or `unknown`;
+- failure consequence;
+- release relevance: `gating` or `non-gating`;
 - proposed correction boundary;
 - proposed disposition;
+- disposition rationale against the frozen Delivery Context;
+- revisit trigger when the proposed disposition is `defer`;
 - verification limits and open questions.
 
 Resolve reviewer disagreements from the controlling specification, repository standards, code, and verification evidence. When evidence cannot settle a factual claim without reproduction or instrumentation, propose `diagnose`, not a vote.
@@ -89,11 +100,30 @@ Use these dispositions:
 - `duplicate`;
 - `already-fixed`.
 
-Publish a **Candidate finding register** on the composer parent. State explicitly that it is not the final verdict and that no follow-up Issues have been created.
+### Product-priority policy
+
+Review exhaustively, schedule selectively. Technical severity describes the consequence if a defect occurs; it does not determine delivery priority or disposition.
+
+Optimize for the next meaningful user feedback loop defined by the frozen Delivery Context.
+
+Propose `fix-now` when a finding:
+
+- blocks the current objective, release gate, or a critical user journey;
+- violates an acceptance criterion of the reviewed Workstream;
+- exposes a currently reachable security, privacy, or irreversible data-integrity boundary;
+- is observed or reproducible with enough likelihood to make user evaluation unreliable.
+
+Propose `diagnose` when the possible consequence is severe or catastrophic but reproduction, instrumentation, likelihood, or operating-envelope evidence is insufficient.
+
+Propose `defer` by default for low-likelihood, future-only, currently unreachable, or theoretical risks outside the confirmed operating envelope. Every deferred finding must retain its evidence, rationale, and a concrete revisit trigger such as enabling multi-worker execution, increasing scale, introducing retries, or preparing production launch.
+
+Use `reject` when the controlling requirement no longer applies, the alleged behavior is impossible inside the confirmed scope, or the evidence does not support a defect. Never reduce a finding's technical severity merely to justify deferral; severity and disposition remain independent fields.
+
+Publish a **Candidate finding register** on the composer parent. Begin with a concise frozen Delivery Context summary, then group proposed findings by disposition so the current execution frontier is visible. State explicitly that it is not the final verdict and that no follow-up Issues have been created.
 
 ## 3. Await human evaluation
 
-Stop and let the user free-prompt changes to IDs, grouping, severity, confidence, disposition, rationale, or correction boundaries.
+Stop and let the user free-prompt changes to IDs, grouping, severity, confidence, disposition, rationale, correction boundaries, or revisit triggers.
 
 Accept concise decisions such as:
 
@@ -107,9 +137,29 @@ Group F-005 and F-006 into one corrective ticket.
 
 Do not ask the user to repeat decisions already stated. Do not materialize until the user explicitly approves the evaluated finding set.
 
+This gate approves finding treatment, not product direction. Do not ask the user to re-confirm the Delivery Context unless Collect identified one of the explicit context stop conditions.
+
 ## 4. Materialize the approved result
 
+Before any GitHub write that creates follow-up work, require all of these approval guards:
+
+- an explicit user approval made after the Candidate finding register was published;
+- approval that names or unambiguously covers the evaluated register version;
+- an approved disposition for every non-duplicate candidate ID;
+- no unresolved user-requested regrouping, rationale, severity, confidence, or boundary change.
+
+If any guard is absent, remain in `AWAIT_HUMAN_EVALUATION`. Silence, acknowledgement, upstream spec approval, or completion of child reviews is not synthesis approval.
+
 Publish an **Approved finding register** and final verdict on the composer parent. Preserve every candidate ID and record the approved disposition and rationale.
+
+Use one final verdict:
+
+- `PASS` when no active or deferred review risk remains;
+- `PASS_WITH_ACCEPTED_RISK` when only approved deferred findings remain and the current release gate is satisfied;
+- `PRODUCT_EVALUATION_READY` when the confirmed pre-production feedback loop is ready even though explicitly deferred hardening remains;
+- `CORRECTION_REQUIRED` when approved `fix-now` work blocks the current objective or release gate;
+- `DIAGNOSIS_REQUIRED` when required evidence must be gathered before disposition can be finalized;
+- `VERIFICATION_REQUIRED` when the implementation claim exists but required verification evidence is still missing.
 
 ### Corrective work
 

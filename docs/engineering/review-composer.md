@@ -28,13 +28,14 @@ Run [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skill
 
 ## Composition
 
-The leading idea is **composition**. The skill freezes a fixed point and reviewed HEAD, maps source tickets and requirements onto bounded slice-and-axis children, creates one Review Composer parent under the Workstream root, and proves coverage with a matrix.
+The leading idea is **composition**. The skill freezes a fixed point and reviewed HEAD, copies the user-confirmed Delivery Context from the controlling spec, maps source tickets and requirements onto bounded slice-and-axis children, creates one Review Composer parent under the Workstream root, and proves coverage with a matrix.
 
-Each child receives a self-contained prompt and delegated lease. The worker gets one frozen range, one slice, one axis, and one child-only write surface. The composer publishes a launch list, records synthesis-ready conditions, then stops.
+Each child receives a self-contained prompt, frozen Delivery Context, and delegated lease. Reviewers still report technical findings exhaustively, but they do not turn severity into delivery priority. The composer does not ask you to confirm the context again; missing or contradictory context routes back to the spec instead. It publishes a launch list, records synthesis-ready conditions, then stops.
 
 ## It's working if
 
 - every source ticket and applicable requirement has a named reviewer or explicit exclusion;
+- the parent contains the confirmed Delivery Context snapshot and its source spec;
 - cross-domain seams have Secondary coverage only where useful;
 - no child receives a duplicate full-batch assignment;
 - every child has an exact prompt and delegated lease;

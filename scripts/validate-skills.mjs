@@ -243,6 +243,14 @@ requirePatterns("code-review", codeReviewSkill, [
   ["large-review route to review-composer", /route to `?\/review-composer`?/i],
 ]);
 
+const toSpecSkill = read("skills/engineering/to-spec/SKILL.md");
+requirePatterns("to-spec", toSpecSkill, [
+  ["delivery context confirmation gate", /one explicit confirmation gate.*delivery context.*testing seams/is],
+  ["delivery context product stage", /Product stage.*pre-usable.*internal-alpha.*beta.*production/is],
+  ["delivery context release boundary", /Current objective[\s\S]*Critical user journeys[\s\S]*Release gate[\s\S]*Operating envelope[\s\S]*Explicit non-goals/i],
+  ["no static delivery state", /Keep current values in the specification, not in static project instructions/i],
+]);
+
 const reviewComposerSkill = read("skills/engineering/review-composer/SKILL.md");
 requirePatterns("review-composer", reviewComposerSkill, [
   ["compose phase", /## Compose/i],
@@ -253,6 +261,9 @@ requirePatterns("review-composer", reviewComposerSkill, [
   ["synthesizer handoff", /name `?\/review-synthesizer`? as the next agent/i],
   ["compose-only boundary", /does not synthesize findings, issue a verdict, create corrective work/i],
   ["no silent native hierarchy fallback", /Body links are not a substitute for native hierarchy/i],
+  ["frozen delivery context", /frozen Delivery Context snapshot/i],
+  ["no repeated delivery confirmation", /Do not ask the user to confirm that context again/i],
+  ["review evidence is not priority", /technical severity separate from delivery priority/i],
 ]);
 
 const reviewSynthesizerSkill = read("skills/engineering/review-synthesizer/SKILL.md");
@@ -266,6 +277,12 @@ requirePatterns("review-synthesizer", reviewSynthesizerSkill, [
   ["deferred ledger", /Deferred and resolved-out findings ledger/i],
   ["root-level follow-up hierarchy", /native direct child of the Workstream root/i],
   ["exact Codex implementer handoff", /route to the configured Codex Implementer/i],
+  ["upstream delivery confirmation authority", /upstream specification confirmation is authoritative/i],
+  ["severity disposition separation", /severity.*does not determine delivery priority or disposition/i],
+  ["product-aware finding fields", /evidence level[\s\S]*user exposure[\s\S]*likelihood[\s\S]*release relevance/i],
+  ["rare risk deferral", /defer.*low-likelihood.*theoretical risks outside the confirmed operating envelope/is],
+  ["materialization approval guards", /Before any GitHub write that creates follow-up work.*approval guards/is],
+  ["product evaluation verdict", /PRODUCT_EVALUATION_READY/],
 ]);
 
 const workstreamTrackingSkill = read("skills/engineering/workstream-tracking/SKILL.md");
@@ -312,14 +329,16 @@ const projectTemplate = read("chatgpt-project/instructions.template.md");
 requirePatterns("ChatGPT Project skill template", projectTemplate, [
   ["repository identity", /repository: <owner\/repository>/i],
   ["workspace identity", /workspace: <absolute-or-home-relative-project-workspace-path>/i],
-  ["skill root identity", /skill_root: <absolute-or-home-relative-installed-skills-root>/i],
   ["required skill runtime", /required: true/i],
   ["default Ask Matt router", /default_router: "\/ask-matt"/i],
-  ["direct skill-root semantics", /directory whose direct children are skill folders/i],
-  ["exact skill resolution", /<skill_root>\/<skill-name>\/SKILL\.md/i],
-  ["full skill read through devspace", /Read the complete resolved `SKILL\.md` through `@devspace`/i],
+  ["open project workspace first", /Open `project\.workspace` with `@devspace`/i],
+  ["catalog source of truth", /skills` catalog returned by that `open_workspace` call as the only available skill registry/i],
+  ["exact catalog skill selection", /catalog entry whose `name` exactly equals/i],
+  ["advertised skill read through devspace", /Read the complete advertised `SKILL\.md` through `@devspace` using the same project `workspaceId`/i],
+  ["no separate skill workspace", /Do not open a second workspace for `~\/\.agents\/skills`/i],
+  ["no path construction", /Do not construct, infer, search for, or normalize skill paths/i],
   ["no execution from memory", /Do not execute from memory/i],
-  ["observable skill receipt", /Loaded skill: <exact SKILL\.md path>/i],
+  ["observable skill receipt", /Loaded skill: <exact advertised SKILL\.md path>/i],
   ["dynamic-state prohibition", /Do not store current HEAD.*active artifact/i],
 ]);
 

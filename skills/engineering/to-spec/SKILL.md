@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # To Spec
 
-Turn the current conversation context and codebase understanding into a specification. Do not interview the user again; synthesize what is already known.
+Turn the current conversation context and codebase understanding into a specification. Do not interview the user again; synthesize what is already known. The only mandatory user interaction is one explicit confirmation gate for the synthesized delivery context and testing seams before publication.
 
 The issue tracker, Workstream protocol, and triage vocabulary should have been configured. Run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` or `docs/agents/workstreams.md` is missing.
 
@@ -29,11 +29,22 @@ Explore the repository if needed. Use the project's domain glossary vocabulary a
 
 Read the Workstream root, relevant decisions, previous handoffs, and any source issue before drafting.
 
-### 2. Choose testing seams
+### 2. Confirm delivery context and testing seams
 
 Sketch the seams at which the feature will be tested. Prefer existing seams to new ones and use the highest seam possible. The fewer seams across the codebase, the better; the ideal is one.
 
-Check with the user that these seams match their expectations.
+Synthesize the delivery context from the conversation rather than asking a fresh interview. It must state:
+
+- product stage: `pre-usable`, `internal-alpha`, `beta`, or `production`;
+- current objective;
+- critical user journeys;
+- current release gate;
+- current operating envelope, including expected scale and concurrency assumptions;
+- explicit non-goals.
+
+Present one concise confirmation packet containing both the delivery context and proposed testing seams. Stop until the user explicitly confirms or amends it. Do not publish the specification before confirmation, and do not ask the user to repeat decisions already present in the conversation.
+
+This confirmation approves the product direction and delivery boundary. Downstream review flows consume it as an approved input; they must not ask the user to confirm the same delivery context again unless it is missing, contradictory, or invalidated by the implementation.
 
 ### 3. Write and publish
 
@@ -60,6 +71,18 @@ The problem that the user is facing, from the user's perspective.
 ## Solution
 
 The solution to the problem, from the user's perspective.
+
+## Delivery Context
+
+- Product stage: `pre-usable` | `internal-alpha` | `beta` | `production`
+- Current objective: the next meaningful product outcome
+- Critical user journeys: the user-visible paths that must work for this objective
+- Release gate: the minimum evidence required to move to the next feedback loop
+- Operating envelope: supported deployment, scale, concurrency, and reliability assumptions for this specification
+- Explicit non-goals: hardening, scale, journeys, or environments deliberately excluded for now
+- Confirmation: record that the user explicitly approved this delivery context during `/to-spec`
+
+Treat this section as the source of truth for downstream review prioritization. Keep current values in the specification, not in static project instructions.
 
 ## User Stories
 

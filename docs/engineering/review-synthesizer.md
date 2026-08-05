@@ -28,9 +28,11 @@ The composer parent, native child hierarchy, coverage matrix, frozen range, and 
 
 ## Finding register
 
-The leading idea is **disposition**. Findings receive stable IDs such as `F-001`, are deduplicated by root cause and correction boundary, and separately record severity, confidence, and proposed action.
+The leading idea is **disposition**. Findings receive stable IDs such as `F-001`, are deduplicated by root cause and correction boundary, and separately record technical severity, confidence, evidence level, likelihood, user exposure, release relevance, and proposed action.
 
-The candidate register is posted for free-form human evaluation. Only after approval does the skill group `fix-now` findings into coherent corrective Issues, route evidence gaps to diagnosis or verification, and preserve deferred or rejected findings with rationale.
+The synthesizer evaluates those fields against the frozen Delivery Context from the confirmed spec. A severe rare race outside the operating envelope can be deferred without pretending it is technically minor; a catastrophic but unproven risk is routed to diagnosis instead of becoming automatic correction work.
+
+The candidate register is posted for free-form human evaluation. This gate approves finding treatment, not the product direction you already confirmed at spec time. Only after explicit approval of the evaluated register does the skill group `fix-now` findings into coherent corrective Issues, route evidence gaps to diagnosis or verification, and preserve deferred or rejected findings with rationale and revisit triggers.
 
 ## Execution frontier
 
@@ -41,6 +43,8 @@ The final handoff names one exact active artifact, operator, activity, reviewed 
 ## It's working if
 
 - every candidate finding has a stable ID and source evidence;
+- severity and disposition remain independent;
+- the candidate register explains each disposition against the frozen Delivery Context;
 - no follow-up Issue exists before explicit human approval;
 - corrective tickets are grouped by correction boundary rather than reviewer comment;
 - deferred findings remain visible without blocking active correction;

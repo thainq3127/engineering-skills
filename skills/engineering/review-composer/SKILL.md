@@ -40,6 +40,10 @@ If another operator owns a writing activity, or implementation has not handed of
 
 ### 2. Freeze the review contract
 
+Resolve the controlling specification and read its user-confirmed **Delivery Context**. Require the product stage, current objective, critical user journeys, release gate, operating envelope, explicit non-goals, and durable confirmation evidence.
+
+Do not ask the user to confirm that context again. If it is missing, contradictory across controlling sources, or clearly invalidated by the implementation, stop and route the specification back through `/to-spec` for amendment and confirmation.
+
 Record:
 
 - fixed point;
@@ -48,6 +52,8 @@ Record:
 - commit list command and resulting commits;
 - included implementation and corrective source tickets;
 - applicable specifications and precedence rules;
+- the controlling specification and its confirmation evidence;
+- a frozen Delivery Context snapshot containing product stage, current objective, critical user journeys, release gate, operating envelope, and explicit non-goals;
 - explicit exclusions;
 - known verification evidence and environment gaps.
 
@@ -75,6 +81,7 @@ Search first for a composer with the same Workstream and frozen range. Otherwise
 - `kind:review` and `ws:<slug>` labels;
 - marker `<!-- review-composer:v1 -->`;
 - frozen review contract;
+- frozen Delivery Context snapshot and source specification;
 - source tickets and specifications;
 - planned slices and axes;
 - coverage matrix;
@@ -112,11 +119,14 @@ Every child prompt must be runnable in a separate chat and include:
 - fixed point, reviewed HEAD, diff command, and commit list;
 - assigned axis and slice;
 - source tickets and specification sections;
+- the frozen Delivery Context snapshot, including release gate, operating envelope, and explicit non-goals;
 - concerns and seams to inspect;
 - exclusions and precedence rules;
 - delegated worker boundary;
 - required report schema;
 - delegated review lease.
+
+Tell every reviewer to report technical findings exhaustively while keeping technical severity separate from delivery priority. Review children produce evidence; they do not decide that a severe, rare, or theoretical risk is automatically `fix-now`.
 
 Use this lease shape:
 

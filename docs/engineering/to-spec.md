@@ -14,7 +14,7 @@ npx skills update to-spec
 
 `to-spec` turns the current conversation and your codebase understanding into a spec (you may know this document as a PRD), then publishes it to your issue tracker.
 
-It does **not** interview you again. By the time you reach for it, the alignment work is done — `to-spec` synthesises what is already known rather than asking a fresh round of questions.
+It does **not** interview you again. By the time you reach for it, the alignment work is done — `to-spec` synthesises what is already known rather than asking a fresh round of questions. It does pause once for you to confirm the proposed delivery context and testing seams before publishing.
 
 ## When to reach for it
 
@@ -30,6 +30,7 @@ Reach for it once a change has been talked through and the domain language is se
 
 - **Problem statement** — what is broken or missing, and why it's worth solving, in the project's own vocabulary.
 - **Solution** — the shape of the fix at a high level, before any implementation detail.
+- **Delivery context** — the product stage, current objective, critical journeys, release gate, operating envelope, and explicit non-goals that later reviews use to separate technical severity from delivery priority.
 - **User stories** — an extensive, numbered list of the concrete behaviours the change must support, each one independently checkable.
 - **Implementation decisions** — the choices already settled during the conversation, so they aren't relitigated later.
 - **Testing decisions** — the seams the feature will be tested at, and what "done" looks like.
@@ -45,12 +46,13 @@ That matters for agentic development: a good interface gives tests something dur
 ## It's working if
 
 - It starts writing the spec instead of asking you a fresh round of questions.
-- It checks the seams with you before writing, and proposes as few as possible.
+- It presents one confirmation packet containing the delivery context and testing seams before publishing.
+- It records the confirmed delivery boundary in the spec rather than static project instructions.
 - The spec comes back in your project's domain vocabulary, not generic boilerplate.
 
 ## Workstream protocol
 
-When Workstreams are enabled, `to-spec` resolves or creates the durable Workstream before publishing. The Workstream root remains a low-resolution index; the specification is a separate child Issue labelled `kind:spec` and `ws:<slug>`, registered in the Project while active. Publishing ends with a durable handoff to ticketing rather than a chat-local TODO.
+When Workstreams are enabled, `to-spec` resolves or creates the durable Workstream before publishing. The Workstream root remains a low-resolution index; the specification is a separate child Issue labelled `kind:spec` and `ws:<slug>`, registered in the Project while active. Its confirmed Delivery Context becomes the source of truth that Review Composer freezes later. Publishing ends with a durable handoff to ticketing rather than a chat-local TODO.
 
 ## Where it fits
 
