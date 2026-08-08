@@ -31,6 +31,8 @@ The route most work travels. You have an idea and want it built.
 
 Keep steps 1–3 in **one unbroken context window** — don't compact or clear until after `/to-tickets` — so the grilling, spec, and tickets all build on the same thinking. Each `/implement` then starts fresh, working from the ticket.
 
+Durable state does not wait for the end of that window. In a tracked Workstream, `/grill-with-docs` and `/wayfinder` checkpoint each human-confirmed decision and the exact next open question to their active Issue before continuing. `/setup-matt-pocock-skills` also commits the repository setup before `/workstream-bootstrap` creates a new worktree from the base branch.
+
 The limit on this is the **[smart zone](https://www.aihero.dev/ai-coding-dictionary/smart-zone)**: the window (~120k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before `/to-tickets`, don't push on degraded — `/handoff` and continue in a fresh thread.
 
 ## Control plane underneath

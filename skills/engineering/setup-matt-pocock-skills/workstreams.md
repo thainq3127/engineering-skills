@@ -34,7 +34,15 @@ To disable the protocol, replace the line above with `Workstreams are disabled f
 
 The bootstrap checkout is a stable control checkout, not a Workstream. `/workstream-bootstrap` runs there, leaves it untouched, and creates each persistent Workstream worktree beneath the Worktree root. The basename of every generated Workstream worktree must equal its canonical slug.
 
+Repository setup is complete only when the selected root instruction file and required `docs/agents/*` configuration are committed on the Default base branch. `/workstream-bootstrap` must stop when those files exist only as working-tree changes, because a newly-created worktree cannot inherit uncommitted setup.
+
 Local Git is authoritative for worktree path, branch, HEAD, dirty state, and merge/rebase state.
+
+## Planning durability
+
+Tracked human-in-the-loop planning uses one active planning or decision Issue as the write surface. After every user-confirmed decision, the active operator updates the `workstream-decision-checkpoints` managed block with a stable decision ID, rationale, evidence, superseded choices, and the exact next open question before continuing the interview.
+
+The Workstream root remains low resolution unless it is itself the intentional decision artifact, such as a Wayfinder map.
 
 ## Operators
 
@@ -163,7 +171,7 @@ The reviewer may inspect code but may write only to its assigned child Issue. It
 - Review Composer with every required child complete: use `/review-synthesizer`.
 - Unknown-cause defect: use `/diagnosing-bugs` before defining corrective work.
 
-Only Review Synthesizer evaluates a completed swarm, updates the final parent verdict, transitions the Workstream, and creates corrective, diagnosis, or verification Issues. It must stop for explicit human approval before materializing candidate findings.
+Only Review Synthesizer evaluates a completed swarm, updates the final parent verdict, transitions the Workstream, and creates corrective, solution-shape decision, diagnosis, or verification Issues. It must stop for explicit human approval before materializing candidate findings.
 
 ## Project membership
 

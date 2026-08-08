@@ -38,13 +38,17 @@ The Workstream claim also fixes the transport profile. ChatGPT Web uses `@devspa
 
 A claim is a cooperative lock recorded on the Workstream root. It pins the operator, activity, active artifact, fixed point, HEAD, and next action. An agent never steals a live claim and a reviewer never reviews a moving target.
 
+## Decision checkpoints
+
+Tracked planning uses write-through checkpoints on the active planning or decision Issue. Once the human confirms a decision, the flow records a stable decision ID, rationale, evidence, superseded choices, and the exact next open question before continuing. This keeps Wayfinder and Grill sessions resumable even when the chat context ends mid-interview. The Workstream root stays low resolution unless it is itself the intentional decision artifact, such as a Wayfinder map.
+
 ## Delegated review leases
 
 A Review Composer can keep the Workstream claim while several reviewers work in parallel. Each lease fixes one composer Issue, one child review Issue, one frozen range, one slice, one axis, and one allowed write surface. The worker may inspect code but may write only to that child. Missing hierarchy or lease data stops the review rather than widening it.
 
 Machine markers are transport-compatible rather than transport-naive. New review artifacts carry both a hidden HTML marker and a visible protocol line. When a GitHub detail read strips comments, marker validation uses that visible line or an exact repository-scoped raw search for the expected Issue number. A launch marker, title, heading, label, comment, or body link never substitutes for the protocol identity.
 
-Composer owns topology, coverage, prompts, leases, and launch. Review Synthesizer later owns the candidate and approved finding registers, human evaluation gate, final verdict, deferred ledger, Workstream transition, Project placement, and corrective, diagnosis, or verification ticket creation.
+Composer owns topology, coverage, prompts, leases, and launch. Review Synthesizer later owns the candidate and approved finding registers, human evaluation gate, final verdict, deferred ledger, Workstream transition, Project placement, and corrective, solution-shape decision, diagnosis, or verification ticket creation. A recurring correction family may therefore move from `review-synthesis` back to `planning` for a reframe instead of mechanically returning to correction.
 
 ## Durable handoffs
 

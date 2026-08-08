@@ -14,7 +14,7 @@ npx skills update setup-matt-pocock-skills
 
 `setup-matt-pocock-skills` teaches one repo how the engineering skills should behave in it — where GitHub work lives, which stable checkout provisions new Workstreams, how those Workstreams map to local worktrees and Projects v2, what the triage labels are called, and where the domain docs sit — then records those answers as **config** the other skills read.
 
-It writes config, it does not hard-code per-repo values into the skills. The one-time bootstrap explores the actual repository, ChatGPT Web's `@devspace` and `@github` access, Codex's native worktree and authenticated `gh` access, existing Projects and fields, labels, and domain docs, then confirms the result with you rather than guessing. It is prompt-driven — explore, present, confirm, then write — not a deterministic scaffold.
+It writes config, it does not hard-code per-repo values into the skills. The one-time setup explores the actual repository, ChatGPT Web's `@devspace` and `@github` access, Codex's native worktree and authenticated `gh` access, existing Projects and fields, labels, and domain docs, then confirms the result with you rather than guessing. It finishes by committing the approved setup files onto the configured base branch, because future Workstream worktrees are created from Git history rather than the bootstrap checkout's uncommitted state.
 
 ## When to reach for it
 
@@ -39,6 +39,7 @@ The output is a set of files under `docs/agents/` — `issue-tracker.md`, `works
 - Tracker access is explicit per operator and forbids cross-profile fallback.
 - Project identity, status mapping, bootstrap checkout, worktree root, base branch, operator profiles, default flow ownership, bootstrap policy, review hierarchy, delegated review leases, and label registry are concrete rather than placeholders.
 - Afterwards, tracker-mutating skills resolve and update the same Workstream instead of inventing their own conventions.
+- The selected instruction file and `docs/agents/*` setup files are present in one verified setup commit on the configured base branch.
 
 ## Where it fits
 

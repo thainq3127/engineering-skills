@@ -102,6 +102,7 @@ Codex must operate directly in the configured Workstream directory. It must not 
 8. Project items contain operational state and links, never the full specification, diagnosis, review, or decision.
 9. A merge is an integration checkpoint, not automatic completion of the Workstream.
 10. Never delete the local worktree or branch automatically. Mark it eligible for cleanup and require an explicit instruction.
+11. In a tracked planning conversation, do not ask the next question while a newly confirmed decision still exists only in chat. Checkpoint it first.
 
 ## Lifecycle operations
 
@@ -110,6 +111,7 @@ The caller should name the operation it needs:
 - `resolve` — identify and validate the Workstream without taking ownership
 - `ensure` — create or repair the root, label, worktree, branch, and Project registration
 - `claim` — take cooperative ownership for one activity and active artifact
+- `checkpoint` — write confirmed planning decisions and the exact next open question to the active artifact before the conversation continues
 - `register` — attach a durable Issue or Pull Request to the Workstream
 - `handoff` — record enough state for the next operator to continue
 - `transition` — move between planning, implementation, diagnosis, review composition, delegated review, review synthesis, correction, verification, integration, and completion
@@ -225,6 +227,52 @@ Update only the root's managed state block, then set the root and active artifac
 
 Review is read-only against local files by default. Planning, specification, ticketing, and research may update tracker artifacts, `CONTEXT.md`, ADRs, specifications, tickets, and research notes, but not production code unless the user explicitly changes the activity. Prototype, implementation, diagnosis, correction, and integration may modify local code within their active artifact's scope. A reviewer must not review a moving target: review starts only after an explicit handoff pins the reviewed `HEAD`.
 
+## Checkpoint confirmed decisions
+
+Use `checkpoint` during tracked planning, grilling, wayfinding, specification alignment, or another human-in-the-loop decision flow. Its purpose is write-through durability: once the user confirms a decision, persist it before asking the next question.
+
+The caller must already hold the `planning` or `specification` claim and name one active Issue as the write surface. Prefer an existing planning or decision Issue. Use the Workstream root only when it is itself the active decision artifact, such as a Wayfinder map.
+
+Immediately before each checkpoint:
+
+1. re-read the active Issue and latest checkpoint block;
+2. verify the current claim still names this operator, activity, and artifact;
+3. confirm the user explicitly accepted the decision or correction being recorded;
+4. preserve concurrent content outside the managed block.
+
+Maintain this block in the active Issue body:
+
+```markdown
+<!-- workstream-decision-checkpoints:start -->
+## Confirmed decisions
+
+- D-001 — <confirmed decision>
+  - Rationale: <why this was chosen>
+  - Evidence or source: <conversation decision, Issue, code, research, or None>
+  - Status: confirmed
+
+## Superseded decisions
+
+- <previous decision and what replaced it, or None>
+
+## Next open question
+
+- <the one question the next turn or session should answer, or None>
+<!-- workstream-decision-checkpoints:end -->
+```
+
+Rules:
+
+- assign stable sequential IDs and never renumber them;
+- update an existing decision rather than duplicating equivalent wording;
+- when the user reverses a decision, move the old entry to `Superseded decisions` and add the replacement with a new ID;
+- record only decisions the user actually confirmed, not agent recommendations, tentative answers, or private reasoning;
+- keep the next open question current after every checkpoint;
+- do not batch several confirmed decisions until the end of the session;
+- after a successful checkpoint, continue the interview with the recorded next open question.
+
+If tracker mutation fails, stop the interview and report the durability failure. Do not keep accumulating decisions in chat and hope to reconstruct them later.
+
 ## Delegated review leases
 
 A delegated review lease permits one parallel reviewer to contribute to a Review Composer without replacing the Workstream-level claim.
@@ -261,7 +309,7 @@ Review Synthesizer becomes the sole writer during `review-synthesis` for:
 - candidate and approved finding registers;
 - the final synthesis, verdict, and deferred ledger;
 - Workstream transitions and handoffs;
-- corrective, diagnosis, or verification Issue creation;
+- corrective, solution-shape decision, diagnosis, or verification Issue creation;
 - Project placement of follow-up work.
 
 To claim `delegated-review`:
@@ -332,6 +380,8 @@ Then update the root managed block to point at that handoff and transfer or rele
 
 A delegated reviewer is different: it posts completion only on its assigned child Issue and closes that child. It does not post a Workstream handoff or update the root. Review Synthesizer performs the review-synthesis handoff after every required child is complete.
 
+For a planning handoff, summarize from the durable checkpoint block rather than reconstructing decisions from chat history. If an open planning artifact remains, the handoff must point at its `Next open question`.
+
 Do not paste full terminal logs or private reasoning. Record facts another operator needs to continue.
 
 ## Transition
@@ -343,6 +393,7 @@ bootstrap -> planning
 planning -> specification -> ticketing -> implementation -> review
 implementation -> review-composition -> delegated-review -> review-synthesis
 review-synthesis -> correction -> review-composition
+review-synthesis -> planning         # solution-shape reframe before more implementation
 review-synthesis -> diagnosis -> correction
 review-synthesis -> verification
 review-synthesis -> integration
@@ -382,7 +433,7 @@ An artifact is complete only when its acceptance conditions are met, required ve
 
 A delegated review child is complete only when its required report, no-finding areas, verification limits, exclusions, and completion status are posted. Closing a child does not complete the composer.
 
-A Review Composer parent is complete only when every child is complete, the coverage matrix is complete, human evaluation is approved, the final finding register, verdict, and deferred ledger are posted, approved follow-up artifacts exist, and Review Synthesizer records the next handoff. Corrective, diagnosis, and verification Issues created by synthesis remain siblings under the Workstream root; they do not need to close before the composer artifact itself can close.
+A Review Composer parent is complete only when every child is complete, the coverage matrix is complete, human evaluation is approved, the final finding register, verdict, and deferred ledger are posted, approved follow-up artifacts exist, and Review Synthesizer records the next handoff. Corrective, solution-shape decision, diagnosis, and verification Issues created by synthesis remain siblings under the Workstream root; they do not need to close before the composer artifact itself can close.
 
 A Workstream is complete only when:
 

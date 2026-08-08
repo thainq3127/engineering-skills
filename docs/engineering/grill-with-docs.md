@@ -30,20 +30,21 @@ This skill is stateful — it writes into your repo as it grills. Resolved terms
 
 The engine is a **grill**: a relentless, one-question-at-a-time walk down the decision tree, resolving dependencies between decisions before moving on, with a recommended answer offered for every question. Questions the codebase can answer are answered by reading the codebase, not by asking you.
 
-What makes this variant its own skill is where the answers go. As the grill runs, fuzzy language gets sharpened into canonical terms and written to the glossary inline — not batched at the end. The glossary stays a glossary: pure vocabulary, no implementation details, no spec. ADRs are offered sparingly, only when a decision is hard to reverse, surprising without context, and the result of a real trade-off. Most sessions produce a sharper glossary and few or no ADRs, and that's the intended shape.
+What makes this variant its own skill is where the answers go. As the grill runs, fuzzy language gets sharpened into canonical terms and written to the glossary inline — not batched at the end. In a tracked Workstream, each confirmed planning decision is also checkpointed immediately to one active planning or decision Issue before the next question is asked. The glossary stays a glossary: pure vocabulary, no implementation details, no spec. ADRs are offered sparingly, only when a decision is hard to reverse, surprising without context, and the result of a real trade-off.
 
 ## It's working if
 
 - It asks one question at a time and waits, rather than dumping a questionnaire.
 - Terms get written to `CONTEXT.md` the moment they resolve, in your project's own words.
+- Confirmed decisions and the next open question are written through to the active planning Issue instead of waiting for the end of the session.
 - It reaches into the codebase to answer its own questions where it can.
 - ADRs stay rare — you're not asked to rubber-stamp reversible choices.
 
 ## Workstream ownership
 
-When the conversation already belongs to a Workstream, `grill-with-docs` resolves and reconciles it, then claims planning before changing `CONTEXT.md` or ADRs. Nested domain modeling inherits that claim. A small exploratory conversation stays untracked and read-only until it becomes a clear durable objective; invoking the skill alone never creates a Workstream.
+When the conversation already belongs to a Workstream, `grill-with-docs` resolves and reconciles it, reuses or creates one direct planning/decision child Issue, then claims planning on that artifact before changing `CONTEXT.md`, ADRs, or durable planning state. Nested domain modeling inherits that claim. A small exploratory conversation stays untracked and read-only until it becomes a clear durable objective; invoking the skill alone never creates a Workstream.
 
-At a stable boundary it leaves a GitHub handoff to prototype, specification, implementation, or wayfinding, with the decisions, files updated, open questions, and one concrete next action.
+At a stable boundary it builds the GitHub handoff from the Issue checkpoints. If context pressure arrives first, it checkpoints the latest confirmed decision and exact next question, then hands off rather than continuing until the conversation forgets its own map.
 
 ## Where it fits
 

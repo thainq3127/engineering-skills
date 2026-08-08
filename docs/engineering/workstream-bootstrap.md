@@ -24,7 +24,7 @@ Reach for it after repository-wide setup is complete and before starting a new d
 
 ## Prerequisites
 
-The repository must already define its issue tracker, GitHub Project, bootstrap checkout, Worktree root, base branch, naming patterns, labels, and Codex execution profile under `docs/agents/`. Codex needs native local Git access and authenticated `gh` access.
+The repository must already define its issue tracker, GitHub Project, bootstrap checkout, Worktree root, base branch, naming patterns, labels, and Codex execution profile under `docs/agents/`. Those files and the root agent instructions must be committed on the configured base branch, not merely present as working-tree edits. Codex needs native local Git access and authenticated `gh` access.
 
 ## Bootstrap checkout
 
@@ -41,6 +41,7 @@ The second human action happens outside Codex: create the named ChatGPT Project,
 ## It's working if
 
 - the bootstrap checkout remains untouched;
+- the pinned base commit already contains the repository setup, so the new worktree does not ask to run setup again;
 - one root Issue, branch, worktree, Project item, and bootstrap handoff agree on one slug and objective;
 - the new root is queued and unassigned rather than falsely claimed;
 - duplicate runs repair only safe omissions and never reset or delete state;

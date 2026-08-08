@@ -47,6 +47,8 @@ Require Workstreams to be enabled and the configuration to name:
 
 If configuration is missing or incomplete, stop and tell the user to run `/setup-matt-pocock-skills`. This skill must not invoke that user-invoked setup flow itself and must not invent missing values.
 
+The configuration must exist in the configured base branch commit. Files that exist only as uncommitted changes in the bootstrap checkout do not satisfy this precondition.
+
 ## Identity vocabulary
 
 Keep these identities separate:
@@ -87,8 +89,12 @@ Before asking questions:
 4. Confirm the repository remote matches `docs/agents/issue-tracker.md` and `docs/agents/workstreams.md`.
 5. Confirm no merge or rebase is active in the bootstrap checkout.
 6. Resolve the configured base branch and its current commit.
-7. Confirm the Worktree root exists or can be created safely.
-8. Confirm the configured GitHub Project and required status field are readable.
+7. Verify the resolved base commit contains `docs/agents/issue-tracker.md`, `docs/agents/workstreams.md`, the configured domain and triage files when applicable, and the selected root instruction file.
+8. Confirm none of those setup-owned files differ between the bootstrap checkout and the resolved base commit.
+9. Confirm the Worktree root exists or can be created safely.
+10. Confirm the configured GitHub Project and required status field are readable.
+
+When required setup files exist in the working tree but not in the resolved base commit, stop with the precise diagnosis that repository setup has not been committed. Tell the user to finish or repair the setup commit in the bootstrap checkout. Do not incorrectly tell them to run the entire setup interview again.
 
 Do not modify or clean a dirty bootstrap checkout. Record its dirty state, use the resolved configured base ref rather than uncommitted contents, and leave the checkout untouched. If the dirty state makes the base ref ambiguous, stop.
 
@@ -280,6 +286,7 @@ Run `/workstream-tracking` with operation `reconcile`, then verify independently
 - the worktree path exists and its basename equals the slug;
 - the worktree is attached to the expected persistent branch;
 - the branch and worktree HEAD equal the pinned base SHA at bootstrap time;
+- the new worktree can read the committed repository setup files from its own HEAD;
 - no unrelated worktree or branch was repointed;
 - the bootstrap checkout was not modified;
 - the root state is unassigned and points to the bootstrap handoff.

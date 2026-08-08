@@ -13,7 +13,7 @@ Scaffold the per-repository configuration that the engineering skills assume:
 - **Triage labels** — the strings used for the canonical triage roles
 - **Domain docs** — where `CONTEXT.md` and ADRs live, and the consumer rules for reading them
 
-This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
+This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, write, then commit the repository setup before reporting success.
 
 ## Process
 
@@ -32,6 +32,16 @@ Look at the current repository and connected tools. Read whatever exists; do not
 - `.scratch/` — evidence of a local-markdown issue tracker convention
 - whether the `triage`, `workstream-bootstrap`, `workstream-tracking`, `review-composer`, and `review-synthesizer` skills are installed
 - monorepo signals such as `pnpm-workspace.yaml`, a `workspaces` field, or multiple populated packages
+
+Capture the pre-setup Git state of every file this flow may own:
+
+- the selected root instruction file (`CLAUDE.md` or `AGENTS.md`);
+- `docs/agents/issue-tracker.md`;
+- `docs/agents/workstreams.md` when Workstreams are installed;
+- `docs/agents/triage-labels.md` when triage is installed;
+- `docs/agents/domain.md`.
+
+Show any pre-existing changes to those paths in the confirmation draft. Do not silently fold unknown edits into the setup commit.
 
 If GitHub Projects v2 is already in use, list the available Projects, fields, and a small sample of items before recommending one. Do not mutate anything during exploration.
 
@@ -172,13 +182,37 @@ Seed files in this skill folder:
 
 For another tracker, write `docs/agents/issue-tracker.md` from the user's description. Keep source-of-truth boundaries explicit.
 
-### 5. Done
+### 5. Persist the setup commit
+
+Repository setup is not complete while its configuration exists only in the working tree. A later Workstream is created from a Git commit, not from uncommitted files in the bootstrap checkout.
+
+Before committing:
+
+1. Confirm the current checkout is the approved bootstrap checkout.
+2. Confirm the current branch is the configured default base branch.
+3. Re-read the exact setup-owned paths and verify they match the user-approved drafts.
+4. Run `git diff --check` for the setup-owned paths and any repository validation that is required for documentation or instruction changes.
+5. Stage only the exact setup-owned paths. Never stage unrelated dirty files.
+6. Show the staged diff summary and verify no unapproved path is staged.
+
+Create one setup commit, normally:
+
+```text
+chore: configure engineering skills
+```
+
+If the approved setup already exists unchanged in the current base commit, do not create an empty commit. Otherwise a successful commit is mandatory. Do not push unless the user explicitly requested a push.
+
+After committing, verify the commit contains every required `docs/agents/*` file and the selected instruction file. Record the exact setup commit SHA. If commit creation or verification fails, stop; do not tell the user setup is complete.
+
+### 6. Done
 
 Report:
 
 - files written or updated;
 - tracker and GitHub access policy;
 - Workstream Project, bootstrap checkout, worktree root, base branch, operators, execution profiles, bootstrap policy, review hierarchy, and delegated review lease policy;
+- the setup commit SHA and confirmation that the configured base branch contains it;
 - which skills now consume each file;
 - any MCP capability gaps left pending.
 

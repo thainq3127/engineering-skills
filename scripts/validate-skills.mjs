@@ -262,6 +262,15 @@ requirePatterns("to-spec", toSpecSkill, [
   ["no static delivery state", /Keep current values in the specification, not in static project instructions/i],
 ]);
 
+const setupSkill = read("skills/engineering/setup-matt-pocock-skills/SKILL.md");
+requirePatterns("setup-matt-pocock-skills", setupSkill, [
+  ["mandatory setup commit", /Repository setup is not complete while its configuration exists only in the working tree/i],
+  ["base branch commit", /current branch is the configured default base branch/i],
+  ["path-scoped staging", /Stage only the exact setup-owned paths/i],
+  ["verified setup commit sha", /Record the exact setup commit SHA/i],
+  ["no automatic push", /Do not push unless the user explicitly requested a push/i],
+]);
+
 const workstreamBootstrapSkill = read("skills/engineering/workstream-bootstrap/SKILL.md");
 requirePatterns("workstream-bootstrap", workstreamBootstrapSkill, [
   ["Codex operator profile", /Codex-owned flow by default/i],
@@ -276,6 +285,28 @@ requirePatterns("workstream-bootstrap", workstreamBootstrapSkill, [
   ["project instructions output", /ChatGPT Project instructions[\s\S]*no placeholders/i],
   ["no dynamic project state", /Do not insert dynamic execution state such as current HEAD/i],
   ["no destructive repair", /Never overwrite a non-empty path[\s\S]*delete a worktree/i],
+  ["committed setup precondition", /configuration must exist in the configured base branch commit/i],
+  ["do not repeat setup interview", /Do not incorrectly tell them to run the entire setup interview again/i],
+  ["new worktree sees setup", /new worktree can read the committed repository setup files from its own HEAD/i],
+]);
+
+const grillWithDocsSkill = read("skills/engineering/grill-with-docs/SKILL.md");
+requirePatterns("grill-with-docs", grillWithDocsSkill, [
+  ["durable planning issue", /one durable planning artifact as the active write surface/i],
+  ["planning decision marker", /planning-decision:v1/i],
+  ["write-through checkpoint", /After every answer the user explicitly confirms as a decision[\s\S]*operation `checkpoint`/i],
+  ["checkpoint before next question", /verify the checkpoint is durable before asking that next question/i],
+  ["context-pressure handoff", /context pressure appears[\s\S]*checkpoint immediately and hand off/is],
+]);
+
+const wayfinderSkill = read("skills/engineering/wayfinder/SKILL.md");
+requirePatterns("wayfinder", wayfinderSkill, [
+  ["reuse bootstrapped root", /workstream-bootstrap.*reuse that root if a map is needed/is],
+  ["deferred map promotion", /Do not apply `wayfinder:map` identity to the root yet[\s\S]*promote the existing Workstream root/is],
+  ["active ticket checkpoints", /Every active HITL decision ticket carries.*decision checkpoint block/is],
+  ["checkpoint before next question", /checkpoint it before asking the next question/i],
+  ["durable resolution source", /final resolution comment is assembled from those durable checkpoints/i],
+  ["context-pressure handoff", /context pressure appears[\s\S]*checkpoint the latest confirmed decision/is],
 ]);
 
 const reviewComposerSkill = read("skills/engineering/review-composer/SKILL.md");
@@ -298,10 +329,10 @@ requirePatterns("review-composer", reviewComposerSkill, [
 const reviewSynthesizerSkill = read("skills/engineering/review-synthesizer/SKILL.md");
 requirePatterns("review-synthesizer", reviewSynthesizerSkill, [
   ["ChatGPT Web operator profile", /ChatGPT Web-owned flow by default/i],
-  ["explicit state machine", /COLLECT[\s\S]*AWAIT_HUMAN_EVALUATION[\s\S]*MATERIALIZE[\s\S]*HANDOFF/i],
+  ["explicit state machine", /COLLECT[\s\S]*ASSESS_CONVERGENCE[\s\S]*AWAIT_HUMAN_EVALUATION[\s\S]*MATERIALIZE[\s\S]*HANDOFF/i],
   ["stable finding ids", /F-001/i],
   ["human approval gate", /Never skip the human evaluation gate/i],
-  ["approved disposition set", /fix-now[\s\S]*defer[\s\S]*diagnose[\s\S]*verify[\s\S]*reject/i],
+  ["approved disposition set", /fix-now[\s\S]*reframe[\s\S]*defer[\s\S]*diagnose[\s\S]*verify[\s\S]*reject/i],
   ["correction boundary grouping", /Group `fix-now` findings by coherent correction boundary/i],
   ["deferred ledger", /Deferred and resolved-out findings ledger/i],
   ["root-level follow-up hierarchy", /native direct child of the Workstream root/i],
@@ -312,6 +343,19 @@ requirePatterns("review-synthesizer", reviewSynthesizerSkill, [
   ["rare risk deferral", /defer.*low-likelihood.*theoretical risks outside the confirmed operating envelope/is],
   ["materialization approval guards", /Before any GitHub write that creates follow-up work.*approval guards/is],
   ["product evaluation verdict", /PRODUCT_EVALUATION_READY/],
+  ["operating envelope precedence", /Apply this precedence before considering severity[\s\S]*outside the confirmed operating envelope/is],
+  ["internal alpha hardening posture", /internal-alpha[\s\S]*transient network interruption[\s\S]*multi-worker concurrency/is],
+  ["fix-now solution shape separation", /fix-now.*patch the current implementation/is],
+  ["correction churn detection", /same finding family has survived or reappeared after two or more recent corrective cycles/i],
+  ["commodity capability detection", /commodity capability[\s\S]*reliable delivery[\s\S]*retry orchestration/is],
+  ["reframe disposition", /Propose `reframe` when a finding is relevant enough[\s\S]*solution strategy before implementation/is],
+  ["solution shape alternatives", /accept or defer the risk[\s\S]*adopt an existing package[\s\S]*redesign the boundary/is],
+  ["delivery recommendation", /Delivery recommendation[\s\S]*PRODUCT_EVALUATION[\s\S]*BOUNDED_CORRECTION[\s\S]*REFRAME/is],
+  ["reframe verdict", /REFRAME_REQUIRED/],
+  ["reframe decision issue", /solution-shape decision Issue[\s\S]*kind:decision/is],
+  ["wayfinder remains human invoked", /recommend `\/wayfinder` as the exact next \*\*human-invoked\*\* action[\s\S]*do not invoke that user-only skill automatically/is],
+  ["delivery-value frontier", /Choose the next frontier by delivery value, not by finding order/i],
+  ["no first-fix-now bias", /Do not select a corrective Issue merely because it is the first `fix-now` item/i],
 ]);
 
 const workstreamTrackingSkill = read("skills/engineering/workstream-tracking/SKILL.md");
@@ -329,6 +373,12 @@ requirePatterns("workstream-tracking", workstreamTrackingSkill, [
   ["marker transport compatibility", /Marker transport compatibility/i],
   ["sanitized detail is not absence", /missing hidden marker.*not sufficient evidence/is],
   ["exact raw marker issue match", /raw-preserving Issue search[\s\S]*exact expected Issue number/i],
+  ["decision checkpoint operation", /`checkpoint` — write confirmed planning decisions/i],
+  ["no unpersisted next question", /do not ask the next question while a newly confirmed decision still exists only in chat/i],
+  ["decision checkpoint block", /workstream-decision-checkpoints:start[\s\S]*Next open question/i],
+  ["checkpoint mutation failure stop", /tracker mutation fails[\s\S]*stop the interview/is],
+  ["review synthesis reframe transition", /review-synthesis -> planning[\s\S]*solution-shape reframe/i],
+  ["synthesizer solution-shape authority", /corrective, solution-shape decision, diagnosis, or verification Issue creation/i],
 ]);
 
 requirePatterns("implement", implementSkill, [
@@ -352,6 +402,8 @@ requirePatterns("Workstream setup template", workstreamTemplate, [
   ["bootstrap checkout", /Bootstrap checkout:/i],
   ["bootstrap folder slug invariant", /basename of every generated Workstream worktree must equal its canonical slug/i],
   ["bootstrap result unassigned", /newly bootstrapped root.*`Unassigned`/is],
+  ["committed setup requirement", /setup is complete only when[\s\S]*committed on the Default base branch/is],
+  ["planning durability", /Planning durability[\s\S]*workstream-decision-checkpoints/is],
   ["review hierarchy", /Review swarm hierarchy/i],
   ["delegated review leases", /Delegated review leases/i],
   ["composer Project placement", /add the active Review Composer parent/i],

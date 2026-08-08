@@ -28,6 +28,7 @@ Run exactly these stages:
 ```text
 COLLECT
 -> PREPARE_EVALUATION
+-> ASSESS_CONVERGENCE
 -> AWAIT_HUMAN_EVALUATION
 -> MATERIALIZE
 -> HANDOFF
@@ -52,6 +53,8 @@ Verify:
 - all child bodies and review comments are readable.
 
 Read every child completely. Do not synthesize from summaries alone.
+
+Also inspect enough prior Workstream history to understand whether the same correction boundary or finding family has already been through review and correction. Read prior Review Composer verdicts, approved finding registers, corrective Issues, and correction handoffs when they are linked from the Workstream or clearly belong to the same boundary. Do not perform an unbounded history excavation; stop once you can establish the recent correction lineage relevant to the current findings.
 
 The upstream specification confirmation is authoritative for this frozen review. Do not ask the user to confirm the Delivery Context again unless it is missing, contradictory, or the implementation makes the stated operating envelope impossible.
 
@@ -82,7 +85,11 @@ Every candidate finding records:
 - likelihood: `high`, `medium`, `low`, or `unknown`;
 - failure consequence;
 - release relevance: `gating` or `non-gating`;
+- finding family or capability class when several findings share one reliability or infrastructure concern;
+- recent correction history for that family, including prior approved findings and corrective Issues when known;
 - proposed correction boundary;
+- proposed solution shape: `patch`, `simplify`, `adopt`, `replace`, `redesign`, `investigate`, or `accepted-risk`;
+- convergence assessment: `converging`, `churn-risk`, or `reframe-required`;
 - proposed disposition;
 - disposition rationale against the frozen Delivery Context;
 - revisit trigger when the proposed disposition is `defer`;
@@ -93,6 +100,7 @@ Resolve reviewer disagreements from the controlling specification, repository st
 Use these dispositions:
 
 - `fix-now`;
+- `reframe`;
 - `defer`;
 - `diagnose`;
 - `verify`;
@@ -105,6 +113,20 @@ Use these dispositions:
 Review exhaustively, schedule selectively. Technical severity describes the consequence if a defect occurs; it does not determine delivery priority or disposition.
 
 Optimize for the next meaningful user feedback loop defined by the frozen Delivery Context.
+
+Apply this precedence before considering severity:
+
+1. If the failure schedule is outside the confirmed operating envelope, default to `defer` or `reject` unless it exposes a currently reachable security, privacy, or irreversible user-data boundary.
+2. If the behavior is not reachable through a current critical user journey, default to `defer`.
+3. If the finding does not block the current objective, release gate, or next meaningful user feedback loop, default to `defer`.
+4. Only then use severity, confidence, evidence, likelihood, and consequence to choose between `fix-now`, `diagnose`, `verify`, or another active disposition.
+
+Product stage changes the hardening posture:
+
+- **pre-usable** — fix only what is necessary to make the first meaningful path usable and trustworthy enough to evaluate;
+- **internal-alpha** — fix observed or reproducible critical-path failures and realistic internal-use failures; defer resilience for transient network interruption, process crash, multi-worker concurrency, storage exhaustion, distributed recovery, and similar hardening unless the confirmed operating envelope or release gate explicitly includes them;
+- **beta** — realistic reachable failure schedules and recovery behavior may become gating when they materially affect evaluator confidence;
+- **production** — resilience, recovery, concurrency, observability, and operational failure handling may be first-class release requirements.
 
 Propose `fix-now` when a finding:
 
@@ -119,11 +141,55 @@ Propose `defer` by default for low-likelihood, future-only, currently unreachabl
 
 Use `reject` when the controlling requirement no longer applies, the alleged behavior is impossible inside the confirmed scope, or the evidence does not support a defect. Never reduce a finding's technical severity merely to justify deferral; severity and disposition remain independent fields.
 
+`fix-now` means the outcome must be addressed before the current feedback loop proceeds. It does **not** mean "patch the current implementation." The solution shape is a separate decision.
+
+## 3. Assess convergence
+
+Before asking the human to approve dispositions, evaluate whether active correction is still converging on the original product problem or has started growing a subsystem.
+
+Group active findings by causal family and correction boundary. Look for these correction-churn signals:
+
+- the same finding family has survived or reappeared after two or more recent corrective cycles;
+- one correction repeatedly exposes adjacent retry, reconnect, ordering, acknowledgement, concurrency, recovery, or lifecycle edge cases in the same boundary;
+- the proposed corrective scope is expanding faster than confidence in the next user feedback loop;
+- several findings are symptoms of one capability class rather than independent local defects;
+- the implementation is beginning to recreate a commodity capability such as reliable delivery, distributed locking, retry orchestration, job scheduling, cache coherence, session management, reconnect state synchronization, or durable workflow execution;
+- the easiest local patch would add another mechanism, state machine, retry layer, ownership token, reconciliation path, or recovery protocol without simplifying the overall boundary.
+
+Classify each active boundary:
+
+- `converging` — one bounded local defect or small coherent correction is likely to close the requirement;
+- `churn-risk` — patching may still be reasonable, but prior correction history or scope growth needs an explicit solution-shape choice;
+- `reframe-required` — continuing local patching is no longer the default because the same family is recurring, the boundary is expanding into a subsystem, or a commodity capability may already solve the class of problem.
+
+For `churn-risk` or `reframe-required`, compare these solution shapes before proposing another corrective Issue:
+
+1. accept or defer the risk for the current product stage;
+2. simplify the requirement or operating model;
+3. adopt an existing package, platform primitive, or library that owns the capability;
+4. replace the current primitive with a better-fitting boundary;
+5. redesign the boundary;
+6. run bounded research or wayfinding before choosing;
+7. continue local patching only when there is a concrete reason it remains the smallest convergent solution.
+
+Propose `reframe` when a finding is relevant enough that it cannot simply be deferred, but the current correction shape is not demonstrably convergent. `reframe` is a request to choose the solution strategy before implementation, not a euphemism for a larger corrective ticket.
+
+For a capability-class finding, do not silently assume the team should build the capability in-house. When adoption of an existing dependency or platform primitive is plausible, make that an explicit alternative in the candidate register. Do not claim that a package exists unless research evidence actually establishes one.
+
+Add a **Delivery recommendation** section before the grouped candidate findings. State one recommended next move:
+
+- `PRODUCT_EVALUATION` when the current feedback loop is ready and the remaining risks are acceptable for the confirmed stage;
+- `BOUNDED_CORRECTION` when one coherent correction directly unlocks the current feedback loop;
+- `REFRAME` when correction churn or capability-class expansion means solution shape must be reconsidered;
+- `DIAGNOSE` or `VERIFY` when evidence, not implementation, is the current blocker.
+
+Explain the recommendation using the frozen Delivery Context, current user exposure, correction history, and expected information gain. A technically valid finding is not enough reason to keep the Workstream in correction.
+
 Publish a **Candidate finding register** on the composer parent. Begin with a concise frozen Delivery Context summary, then group proposed findings by disposition so the current execution frontier is visible. State explicitly that it is not the final verdict and that no follow-up Issues have been created.
 
-## 3. Await human evaluation
+## 4. Await human evaluation
 
-Stop and let the user free-prompt changes to IDs, grouping, severity, confidence, disposition, rationale, correction boundaries, or revisit triggers.
+Stop and let the user free-prompt changes to IDs, grouping, severity, confidence, disposition, rationale, correction boundaries, solution shapes, convergence assessments, delivery recommendation, or revisit triggers.
 
 Accept concise decisions such as:
 
@@ -131,6 +197,7 @@ Accept concise decisions such as:
 F-001 fix-now.
 F-002 defer.
 F-003 diagnose.
+F-004 reframe; compare adopting a library versus simplifying the retry contract.
 Reject F-004 because the requirement no longer applies.
 Group F-005 and F-006 into one corrective ticket.
 ```
@@ -139,7 +206,7 @@ Do not ask the user to repeat decisions already stated. Do not materialize until
 
 This gate approves finding treatment, not product direction. Do not ask the user to re-confirm the Delivery Context unless Collect identified one of the explicit context stop conditions.
 
-## 4. Materialize the approved result
+## 5. Materialize the approved result
 
 Before any GitHub write that creates follow-up work, require all of these approval guards:
 
@@ -157,6 +224,7 @@ Use one final verdict:
 - `PASS` when no active or deferred review risk remains;
 - `PASS_WITH_ACCEPTED_RISK` when only approved deferred findings remain and the current release gate is satisfied;
 - `PRODUCT_EVALUATION_READY` when the confirmed pre-production feedback loop is ready even though explicitly deferred hardening remains;
+- `REFRAME_REQUIRED` when the current objective still has an active problem but another local corrective patch is not the approved solution shape;
 - `CORRECTION_REQUIRED` when approved `fix-now` work blocks the current objective or release gate;
 - `DIAGNOSIS_REQUIRED` when required evidence must be gathered before disposition can be finalized;
 - `VERIFICATION_REQUIRED` when the implementation claim exists but required verification evidence is still missing.
@@ -164,6 +232,8 @@ Use one final verdict:
 ### Corrective work
 
 Group `fix-now` findings by coherent correction boundary. Create neither one Issue per reviewer comment nor one mega-Issue spanning independent acceptance criteria.
+
+Create a corrective Issue only when the approved solution shape is `patch`, `simplify`, `replace`, or another bounded implementation change with clear acceptance criteria. Do not create a corrective Issue merely because a finding is `fix-now` if the approved solution shape still needs a decision.
 
 Every corrective Issue must:
 
@@ -181,6 +251,22 @@ Every corrective Issue must:
 
 Create diagnosis or verification Issues only for approved `diagnose` or `verify` findings, as native direct children of the Workstream root with evidence gaps and completion conditions.
 
+### Reframe work
+
+For approved `reframe` findings, create one coherent **solution-shape decision Issue** per shared capability class or correction boundary, not one Issue per finding. It must:
+
+- be a native direct child of the Workstream root;
+- carry `kind:decision` and `ws:<slug>`;
+- name the composer and approved finding IDs;
+- summarize the correction history and why local patching is not currently considered convergent;
+- preserve the current Delivery Context, operating envelope, and feedback-loop goal;
+- enumerate the viable shapes: accept/defer, simplify, adopt, replace, redesign, bounded research, or continue patching with justification;
+- state what evidence would decide between those shapes;
+- explicitly ask whether a package, framework, or platform primitive already owns the capability when that is plausible;
+- define a completion condition as a durable solution-shape decision, not implementation.
+
+Route a narrow dependency or technology question through the model-invoked `/research` discipline. For broad architecture or multi-decision uncertainty, recommend `/wayfinder` as the exact next **human-invoked** action; do not invoke that user-only skill automatically. Otherwise keep the reframe as a bounded planning decision. Do not materialize implementation work from `reframe` until that decision is resolved.
+
 ### Deferred and rejected findings
 
 Maintain a **Deferred and resolved-out findings ledger** on the composer parent:
@@ -192,15 +278,19 @@ Maintain a **Deferred and resolved-out findings ledger** on the composer parent:
 
 Add only active or immediate-frontier follow-up Issues to the GitHub Project.
 
-## 5. Handoff
+## 6. Handoff
 
-Choose the next frontier deterministically:
+Choose the next frontier by delivery value, not by finding order:
 
-1. first unblocked `fix-now` corrective Issue;
-2. otherwise first required diagnosis Issue;
-3. otherwise first required verification Issue;
-4. otherwise integration when the review passes and integration remains;
-5. otherwise completion when the Workstream objective is actually satisfied.
+1. when the current feedback loop is ready and remaining findings are approved deferred or resolved-out risks, hand off to the current product evaluation, verification, integration, or other release-gate artifact instead of creating more correction work;
+2. when an approved `reframe` exists, select the coherent solution-shape decision Issue before any further local corrective patch;
+3. otherwise select a bounded corrective Issue only when it directly unlocks the current objective or feedback loop and its approved solution shape is convergent;
+4. otherwise select the first required diagnosis Issue;
+5. otherwise select the first required verification Issue;
+6. otherwise integration when the review passes and integration remains;
+7. otherwise completion when the Workstream objective is actually satisfied.
+
+Do not select a corrective Issue merely because it is the first `fix-now` item. The handoff must explain why the selected frontier is the highest-value next move for the current Delivery Context.
 
 For correction:
 
@@ -212,7 +302,9 @@ For correction:
 
 Use the equivalent exact handoff for diagnosis, verification, or integration. Do not say only “handoff the next frontier.” Name the operator, artifact, activity, and next action.
 
-## 6. Close
+For `reframe`, transition to planning with the solution-shape decision as the active artifact. The handoff may invoke `/research` for bounded evidence gathering, recommend that the human invoke `/wayfinder` for a broad multi-decision reframe, or continue the bounded planning decision directly. Do not route straight to Codex implementation and do not auto-invoke a user-only planning skill.
+
+## 7. Close
 
 Close the composer parent only after:
 
@@ -223,7 +315,7 @@ Close the composer parent only after:
 - all approved follow-up artifacts exist with correct native hierarchy;
 - the Workstream handoff succeeded.
 
-Leave the Workstream root open while correction, diagnosis, verification, or integration remains.
+Leave the Workstream root open while planning, correction, diagnosis, verification, or integration remains.
 
 ## Authority boundary
 
